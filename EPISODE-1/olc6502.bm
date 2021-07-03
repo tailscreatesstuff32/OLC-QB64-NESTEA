@@ -295,7 +295,7 @@ DIM  sInst AS STRING
                     addr= addr+1
                     hi =bus_read(addr,1)
                       addr= addr+1
-                   sinst =sinst  + "$" + hex_range(_SHR(hi,8) or lo,4)+" {ABS}"
+                   sinst =sinst  + "$" + hex_range(_SHL(hi,8) or lo,4)+" {ABS}"
              elseif instructions(op).addrmode = add_mode_ZPO then
 
                  lo = bus_read(addr,1)
