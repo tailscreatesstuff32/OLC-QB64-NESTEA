@@ -1,5 +1,8 @@
 # OLC-QB64-NESTEA
 javidX9's NES emulator tutorials ported to QB64 by me
+i will upload each episode as i complete it.
+
+big thanks to javidx9 for the original tutorials! 
 
 
 EPISODE 1
