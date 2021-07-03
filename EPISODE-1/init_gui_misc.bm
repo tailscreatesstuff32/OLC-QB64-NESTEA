@@ -1,0 +1,367 @@
+SUB DrawCPUepisode2 (x AS INTEGER, y AS INTEGER)
+
+
+    Drawstring x, y, "STATUS: ", _RGB(255, 255, 255)
+    Drawstring x + 64, y, "N", _RGB(255, 0, 0)
+    Drawstring x + 80, y, "V", _RGB(255, 0, 0)
+    Drawstring x + 96, y, "-", _RGB(0, 255, 0)
+    Drawstring x + 112, y, "B", _RGB(255, 0, 0)
+    Drawstring x + 128, y, "D", _RGB(255, 0, 0)
+    Drawstring x + 144, y, "I", _RGB(255, 0, 0)
+    Drawstring x + 160, y, "Z", _RGB(255, 0, 0)
+    Drawstring x + 178, y, "C", _RGB(255, 0, 0)
+
+    Drawstring x, y + 10, "PC: $" + "0000", _RGB(255, 255, 255)
+    Drawstring x, y + 20, "A: $" + "00" + "  [0]", _RGB(255, 255, 255)
+    Drawstring x, y + 30, "X: $" + "00" + "  [0]", _RGB(255, 255, 255)
+    Drawstring x, y + 40, "Y: $" + "00" + "  [0]", _RGB(255, 255, 255)
+    Drawstring x, y + 50, "Stack P: $" + "0000", _RGB(255, 255, 255)
+END SUB
+
+SUB DrawRAMepisode2 (x AS INTEGER, y AS INTEGER, addr AS _UNSIGNED INTEGER, nRows AS INTEGER, nCols AS INTEGER)
+    DIM nRamx, nRamy
+    nRamx = x
+    nRamy = y
+
+    FOR row = 0 TO nRows - 1
+        sOffset$ = "$" + hex_str$(addr, 4) + ":"
+        FOR col = 0 TO nCols - 1
+
+
+            sOffset$ = sOffset$ + " " + "00" ' hex_str$(&H00, 4)
+
+
+        NEXT col
+
+        Drawstring nRamx, nRamy, sOffset$, _RGB(255, 255, 255)
+
+        nRamy = nRamy + 10
+
+
+    NEXT row
+
+
+
+END SUB
+
+
+
+SUB DrawCPU (x AS INTEGER, y AS INTEGER)
+
+
+    Drawstring x, y, "STATUS: ", _RGB(255, 255, 255)
+    Drawstring x + 64, y, "N", _RGB(255, 0, 0)
+    Drawstring x + 80, y, "V", _RGB(255, 0, 0)
+    Drawstring x + 96, y, "-", _RGB(0, 255, 0)
+    Drawstring x + 112, y, "B", _RGB(255, 0, 0)
+    Drawstring x + 128, y, "D", _RGB(255, 0, 0)
+    Drawstring x + 144, y, "I", _RGB(255, 0, 0)
+    Drawstring x + 160, y, "Z", _RGB(255, 0, 0)
+    Drawstring x + 178, y, "C", _RGB(255, 0, 0)
+
+    Drawstring x, y + 10, "PC: $" + "0000", _RGB(255, 255, 255)
+    Drawstring x, y + 20, "A: $" + "00" + "  [0]", _RGB(255, 255, 255)
+    Drawstring x, y + 30, "X: $" + "00" + "  [0]", _RGB(255, 255, 255)
+    Drawstring x, y + 40, "Y: $" + "00" + "  [0]", _RGB(255, 255, 255)
+    Drawstring x, y + 50, "Stack P: $" + "0000", _RGB(255, 255, 255)
+END SUB
+
+SUB DrawRAM (x AS INTEGER, y AS INTEGER, addr AS _UNSIGNED INTEGER, nRows AS INTEGER, nCols AS INTEGER)
+    DIM nRamx, nRamy
+    nRamx = x
+    nRamy = y
+
+    FOR row = 0 TO nRows - 1
+        sOffset$ = "$" + hex_str$(addr, 4) + ":"
+        FOR col = 0 TO nCols - 1
+
+
+            sOffset$ = sOffset$ + " " + "00" ' hex_str$(&H00, 4)
+
+
+        NEXT col
+
+        Drawstring nRamx, nRamy, sOffset$, _RGB(255, 255, 255)
+
+        nRamy = nRamy + 10
+
+
+    NEXT row
+
+
+
+END SUB
+
+
+
+
+
+SUB Drawstring (x AS INTEGER, y AS INTEGER, str1 AS STRING, clr AS _UNSIGNED LONG)
+
+
+    ' LOCATE x, y
+    COLOR clr, _RGBA(0, 0, 0, 0)
+    _PRINTSTRING (x, y), str1, canvas&
+
+
+
+
+END SUB
+
+
+FUNCTION hex_str$ (n AS INTEGER, d AS INTEGER)
+    s$ = "0000"
+
+    hex_str$ = s$
+
+END SUB
+
+SUB DrawCode (x AS INTEGER, y AS INTEGER, nLines AS INTEGER)
+
+    FOR col = 0 TO nLines
+
+        Drawstring x, y + col * 10, "00" + ": (" + "0" + "," + "0" + ") " + "ID: " + "00" + " AT: " + "00", _RGB(255, 255, 255)
+
+    NEXT col
+
+
+END SUB
+
+SUB DrawCodeepisode2 (x AS INTEGER, y AS INTEGER, nLines AS INTEGER)
+    nliney = _SHR(nLines, 1) * 10 + y
+    Drawstring x, nliney, "$0000" + ": " + "BRK" + " " + "#$00" + " " + "{IMM}", _RGB(0, 255, 255)
+
+
+    WHILE nliney < (nLines * 10) + y
+        nliney = nliney + 10
+        Drawstring x, nliney, "$0000" + ": " + "BRK" + " " + "#$00" + " " + "{IMM}", _RGB(255, 255, 255)
+    WEND
+
+    nliney = _SHR(nLines, 1) * 10 + y
+
+    WHILE nliney > y
+        nliney = nliney - 10
+        Drawstring x, nliney, "$0000" + ": " + "BRK" + " " + "#$00" + " " + "{IMM}", _RGB(255, 255, 255)
+    WEND
+
+
+
+
+END SUB
+
+FUNCTION Rand (Bottom, Top)
+
+    'create a random number between Bottom and Top, inclusive
+    ' RANDOMIZE TIMER 'this sets the random number generator
+    ' RANDOMIZE RND * 10 'this confuses it to get more randomness
+    IF Bottom > Top THEN 'oops - reverse order
+        Temp = Bottom
+        Bottom = Top
+        Top = Temp
+    END IF
+    Rand = INT((Top - Bottom + 1) * RND + Bottom)
+END FUNCTION
+
+
+
+SUB episode2_UI ()
+
+
+
+    'LINE (0, 0)-(256 * scale, 240 * scale), _RGB(0, 0, 0), BF
+    CLS , _RGB(0, 0, 128)
+
+
+    ' _SETALPHA 150, , nestea_logo
+    '_SETALPHA 255, , nestea_logo
+    '_CLEARCOLOR _RGB32(0, 0, 0, 0), nestea_logo
+    _PUTIMAGE (0, -99)-(500, 500 - 99), nestea_logo
+
+
+    DrawRAM 2, 2, &H0000, 16, 16
+    DrawRAM 2, 182, &H8000, 16, 16
+    'DrawAudio
+    DrawCPU 516, 2
+    DrawCode 516, 72, 25
+
+
+
+    Drawstring 10, 370, "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI", _RGB(255, 255, 255)
+
+    ' LINE (0, 0)-(256 * 2, 240 * 2), _RGB(0, 0, 0), BF
+
+
+    'FOR p = 0 TO 7
+    '    FOR s = 0 TO 3
+    '        rect_x = 516 + p * (6 * 5) + s * 6
+    '        rect_y = 340
+
+    '        LINE (rect_x, rect_y)-((rect_x + 6) - 1, (rect_y + 6) - 1), _RGB(0, 0, 0), BF
+
+    '    NEXT s
+    'NEXT p
+
+
+END SUB
+
+SUB episode3_UI ()
+
+
+
+    'LINE (0, 0)-(256 * scale, 240 * scale), _RGB(0, 0, 0), BF
+    CLS , _RGBA(0, 0, 128, 255)
+
+
+    ' _SETALPHA 150, , nestea_logo
+    '_SETALPHA 255, , nestea_logo
+    '_CLEARCOLOR _RGB32(0, 0, 0, 0), nestea_logo
+    LINE (0, 0)-(256 * 2, 240 * 2), _RGBA(255, 255, 255, 255), BF
+
+
+    _PUTIMAGE (0, 0)-(500, 500), nestea_logo, canvas
+    '  DrawRAM 2, 2, &H0000, 16, 16
+    ' DrawRAM 2, 182, &H8000, 16, 16
+    'DrawAudio
+    DrawCPU 516, 2
+    DrawCodeepisode2 516, 72, 26
+
+
+
+    'Drawstring 10, 370, "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI", _RGB(255, 255, 255)
+
+
+    'FOR p = 0 TO 7
+    '    FOR s = 0 TO 3
+    '        rect_x = 516 + p * (6 * 5) + s * 6
+    '        rect_y = 340
+
+    '        LINE (rect_x, rect_y)-((rect_x + 6) - 1, (rect_y + 6) - 1), _RGB(0, 0, 0), BF
+
+    '    NEXT s
+    'NEXT p
+
+
+END SUB
+
+SUB episode4_UI ()
+
+
+
+    'LINE (0, 0)-(256 * scale, 240 * scale), _RGB(0, 0, 0), BF
+    CLS , _RGB(0, 0, 128)
+
+
+    ' _SETALPHA 150, , nestea_logo
+    '_SETALPHA 255, , nestea_logo
+    '_CLEARCOLOR _RGB32(0, 0, 0, 0), nestea_logo
+    _PUTIMAGE (0, -99)-(500, 500 - 99), nestea_logo
+
+
+    DrawRAM 2, 2, &H0000, 16, 16
+    DrawRAM 2, 182, &H8000, 16, 16
+    'DrawAudio
+    DrawCPU 516, 2
+    DrawCode 516, 72, 25
+
+
+
+    'Drawstring 10, 370, "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI", _RGB(255, 255, 255)
+
+    ' LINE (0, 0)-(256 * 2, 240 * 2), _RGB(0, 0, 0), BF
+
+
+    'FOR p = 0 TO 7
+    '    FOR s = 0 TO 3
+    '        rect_x = 516 + p * (6 * 5) + s * 6
+    '        rect_y = 340
+
+    '        LINE (rect_x, rect_y)-((rect_x + 6) - 1, (rect_y + 6) - 1), _RGB(0, 0, 0), BF
+
+    '    NEXT s
+    'NEXT p
+
+
+END SUB
+
+SUB episode5_UI ()
+
+
+
+    'LINE (0, 0)-(256 * scale, 240 * scale), _RGB(0, 0, 0), BF
+    CLS , _RGB(0, 0, 128)
+
+
+    ' _SETALPHA 150, , nestea_logo
+    '_SETALPHA 255, , nestea_logo
+    '_CLEARCOLOR _RGB32(0, 0, 0, 0), nestea_logo
+    _PUTIMAGE (0, -99)-(500, 500 - 99), nestea_logo
+
+
+    DrawRAM 2, 2, &H0000, 16, 16
+    DrawRAM 2, 182, &H8000, 16, 16
+    'DrawAudio
+    DrawCPU 516, 2
+    DrawCode 516, 72, 25
+
+
+
+    'Drawstring 10, 370, "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI", _RGB(255, 255, 255)
+
+    ' LINE (0, 0)-(256 * 2, 240 * 2), _RGB(0, 0, 0), BF
+
+
+    'FOR p = 0 TO 7
+    '    FOR s = 0 TO 3
+    '        rect_x = 516 + p * (6 * 5) + s * 6
+    '        rect_y = 340
+
+    '        LINE (rect_x, rect_y)-((rect_x + 6) - 1, (rect_y + 6) - 1), _RGB(0, 0, 0), BF
+
+    '    NEXT s
+    'NEXT p
+
+
+END SUB
+
+SUB episode6to7_UI ()
+
+
+    CLS , _RGB(0, 0, 128)
+
+    LINE (0, 0)-(256 * scale * 2, 240 * scale * 2), _RGB(0, 0, 0), BF
+
+    ' _PUTIMAGE (0, 0)-(500, 500), nestea_logo
+
+
+    'DrawRAM 2, 2, &H0000, 16, 16
+    'DrawRAM 2, 182, &H8000, 16, 16
+    'DrawAudio
+    DrawCPU 516, 2
+    DrawCode 516, 72, 25
+
+
+
+    'Drawstring 10, 370, "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI", _RGB(255, 255, 255)
+
+    ' LINE (0, 0)-(256 * 2, 240 * 2), _RGB(0, 0, 0), BF
+
+
+    FOR p = 0 TO 7
+        FOR s = 0 TO 3
+            rect_x = 516 + p * (6 * 5) + s * 6
+            rect_y = 340
+
+            LINE (rect_x, rect_y)-((rect_x + 6) - 1, (rect_y + 6) - 1), _RGB(0, 0, 0), BF
+
+        NEXT s
+    NEXT p
+
+
+    LINE (516, 348)-(516 + 127, 348 + 127), _RGB(0, 0, 0), BF
+    LINE (648, 348)-(648 + 127, 348 + 127), _RGB(0, 0, 0), BF
+
+
+
+
+END SUB
+
