@@ -106,7 +106,6 @@ FUNCTION ASL~%     '--------------works as expected for now COMPLETE
     temp = _SHL(fetched, 1)
     set_flag cpu_regs.flags.C, abs((temp AND &HFF00) > 0)
     set_flag cpu_regs.flags.Z, abs((temp AND &H00FF) = 0)
-     _title(str$(temp) )
     set_flag cpu_regs.flags.N, _shr((temp and &H80),7)
 
     IF instructions(opcode).addrmode  = addr_mode_IMP THEN
