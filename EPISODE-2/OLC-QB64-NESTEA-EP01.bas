@@ -4,7 +4,7 @@ DIM SHARED keys(255) AS _BYTE
 '$include: 'bus.bi'
 
 WIDTH 86, 40
-_TITLE "NEStea-ROM-disassemble"
+_TITLE "OLC-QB64-NESTEA-EP01"
 
 
 init
