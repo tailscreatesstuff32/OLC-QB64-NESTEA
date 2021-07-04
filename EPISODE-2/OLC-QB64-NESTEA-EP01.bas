@@ -1,8 +1,3 @@
-DIM k AS STRING
-DIM SHARED kpress AS _BYTE
-DIM SHARED ipress AS _BYTE
-DIM SHARED npress AS _BYTE
-
 DIM SHARED keys(255) AS _BYTE
 
 
@@ -23,15 +18,11 @@ DO
 LOOP UNTIL keypress(27)
 
 DIM SHARED mapAsm(65535) AS STRING
-'REDIM SHARED mapAsm(65535)
-
-
-
 
 
 
 SUB init ()
-    'SHARED cpu_regs AS regs_6502
+
     DIM nOffset AS _UNSIGNED INTEGER
 
 
@@ -44,29 +35,24 @@ SUB init ()
     cpu_regs.flags.V = _SHL(1, 6)
     cpu_regs.flags.N = _SHL(1, 7)
 
-    'A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA 8D 02 00 EA EA EA"
+    'A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA 8D 02 00 EA EA EA" ' original format
 
-
-
-
-    ss$ = "A20A8E0000A2038E0100AC0000A900186D010088D0FA8D0200EAEAEA" 'test program  PASSED
-
-
+    ' ss$ = "A20A8E0000A2038E0100AC0000A900186D010088D0FA8D0200EAEAEA" 'test program  PASSED
 
     ' ss$ = "a9018d0002a9058d0102a9088d0202" 'test program 2 'PASSED
 
     'ss$ = "a9c0aae869c400" 'PASSED
 
     'ss$ = "a98085016501" 'PASSED
+
     'ss$ = "a208ca8e0002e003d0f88e010200" 'PASSED
-    'ss$ = "a200a0008a99000248e8c8c010d0f568990002c8c020d0f7" 'PASSED
+
+    ss$ = "a200a0008a99000248e8c8c010d0f568990002c8c020d0f7" 'PASSED
 
 
     nOffset = &H8000
 
     FOR x = 0 TO LEN(ss$) - 1
-        'PRINT nOffset
-
         ram(nOffset) = VAL("&H" + MID$(ss$, 2 * x + 1, 2))
         nOffset = nOffset + 1
     NEXT x
@@ -77,10 +63,8 @@ SUB init ()
     ram(nOffset) = &H00
     nOffset = &HFFFD
     ram(nOffset) = &H80
-    'REDIM mapAsm(&HFFFF) AS STRING
-    disassemble mapAsm(), &H0000, &HFFFF
-    '_TITLE STR$(UBOUND(mapAsm))
 
+    disassemble mapAsm(), &H0000, &HFFFF
     reset_6502
 
 
@@ -115,9 +99,9 @@ SUB main ()
     IF keypress(ASC(" ")) THEN
 
         DO
-            ' _TITLE STR$(complete)
+
             cpu_Clock
-            '  sleep 1
+
         LOOP WHILE NOT complete
     END IF
 
@@ -151,7 +135,7 @@ END SUB
 SUB DrawCpu (x AS INTEGER, y AS INTEGER)
     LOCATE y, x
 
-    'PRINT " N "; " V "; " - "; " B "; " D "; " I "; " Z "; " C "
+
 
     IF cpu_regs.status AND cpu_regs.flags.N THEN COLOR 4 ELSE COLOR 2
     PRINT " N ";
@@ -224,7 +208,7 @@ SUB DrawCode (x AS INTEGER, y AS INTEGER, nLines AS INTEGER)
 
 
     nLineY = _SHR(nLines, 1) + y
-    'IF pc <> UBOUND(mapAsm) THEN
+
     IF LEN(mapAsm(pc)) > 0 OR pc = UBOUND(mapasm) THEN
         LOCATE nLineY, x
         COLOR 3
@@ -238,7 +222,7 @@ SUB DrawCode (x AS INTEGER, y AS INTEGER, nLines AS INTEGER)
             pc = pc + 1
 
 
-            'IF pc <> UBOUND(mapAsm) THEN
+
             IF LEN(mapAsm(pc)) > 0 OR pc = UBOUND(mapasm) THEN
                 nLineY = nLineY + 1
                 LOCATE nLineY, x
@@ -250,9 +234,9 @@ SUB DrawCode (x AS INTEGER, y AS INTEGER, nLines AS INTEGER)
     END IF
     'top
     pc = cpu_regs.pc
-    'mapAsm(65535) = "1"
+
     nLineY = _SHR(nLines, 1) + y
-    ' IF pc <> UBOUND(mapAsm) THEN
+
     IF LEN(mapAsm(pc)) > 0 OR pc = UBOUND(mapasm) THEN
         WHILE nLineY > y
 
@@ -262,13 +246,13 @@ SUB DrawCode (x AS INTEGER, y AS INTEGER, nLines AS INTEGER)
 
 
             IF LEN(mapAsm(pc)) > 0 OR pc = UBOUND(mapasm) THEN
-                '  IF pc <> UBOUND(mapAsm) THEN
+
                 nLineY = nLineY - 1
                 LOCATE nLineY, x
                 COLOR 7
 
                 PRINT mapAsm(pc)
-                '  END IF
+
             ELSE
             END IF
 
@@ -299,19 +283,6 @@ END FUNCTION
 
 FUNCTION keyheld (k AS _BYTE)
 
-    'IF _KEYDOWN(k) THEN
-    '    IF keys(k) = 0 THEN
-    '        keys(k) = 1
-    '        'keypress = keys(k)
-
-
-    '    END IF
-    'ELSE
-    '    'keys(k) = 0
-    '    'keypress = keys(k)
-
-
-    'END IF
     keyheld = _KEYDOWN(k)
 
 END FUNCTION
