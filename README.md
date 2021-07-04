@@ -15,5 +15,5 @@ EPISODE 2
 
 EPISODE 3
 
--- comming soon! :D --
+-- coming soon! :D --
 
