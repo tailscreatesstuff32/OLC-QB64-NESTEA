@@ -1,9 +1,9 @@
 
 
 
-<IMG SRC ="https://user-images.githubusercontent.com/66333352/124371339-bb60e900-dc35-11eb-9ab1-53f84fed23c5.png" width=125 height=125></IMG> 
+
 # OLC-QB64-NESTEA
-javidX9's NES emulator tutorials ported to QB64 by me
+<IMG SRC ="https://user-images.githubusercontent.com/66333352/124371339-bb60e900-dc35-11eb-9ab1-53f84fed23c5.png" width=125 height=125></IMG> javidX9's NES emulator tutorials ported to QB64 by me
 i will upload each episode as i complete it.
 
 big thanks to javidx9 for the original tutorials! 
