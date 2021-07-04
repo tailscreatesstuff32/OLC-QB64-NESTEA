@@ -1,0 +1,21 @@
+'$include: 'olc6502.bm'
+
+
+SUB bus_write (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
+    IF addr >= 0 AND addr <= &HFFFF~% THEN
+        ram(addr) = byte_data
+    END IF
+
+END SUB
+
+
+FUNCTION bus_read (addr AS _UNSIGNED INTEGER, bReadOnly AS _UNSIGNED _BYTE)
+    IF addr >= 0 AND addr <= &HFFFF~% THEN
+        bus_read = ram(addr)
+    ELSE
+        bus_read = &H00
+    END IF
+
+END FUNCTION
+
+
