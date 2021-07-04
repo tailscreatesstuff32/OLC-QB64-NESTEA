@@ -11,7 +11,7 @@ big thanks to javidx9 for the original tutorials!
 
 EPISODE 2
 
-<IMG SRC ="https://user-images.githubusercontent.com/66333352/124341487-96a33d80-db71-11eb-98a4-01a7000f3ed0.png" width=250 height=250></IMG>
+<IMG SRC ="https://user-images.githubusercontent.com/66333352/124371930-5f00c800-dc3b-11eb-9ab9-cd1602b4aa34.png" width=250 height=250></IMG>
 
 EPISODE 3
 
