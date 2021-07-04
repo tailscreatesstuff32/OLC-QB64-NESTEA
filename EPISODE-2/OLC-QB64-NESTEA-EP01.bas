@@ -59,10 +59,9 @@ SUB init ()
 
 
 
-    nOffset = &HFFFC
-    ram(nOffset) = &H00
-    nOffset = &HFFFD
-    ram(nOffset) = &H80
+    ram(&HFFFC~%) = &H00
+    ram(&HFFFD~%) = &H80
+
 
     disassemble mapAsm(), &H0000, &HFFFF
     reset_6502
