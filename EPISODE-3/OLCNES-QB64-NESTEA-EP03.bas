@@ -113,13 +113,27 @@ SUB main ()
 
 
         _LIMIT 60
-
+        frames_per_sec
         IF bEmulationrun THEN 'wip for now.... slowish
 
             DO
+
+
                 clock_NES
 
-            LOOP WHILE NOT framecomplete
+
+                '  _DISPLAY
+            LOOP WHILE NOT framecomplete 'bEmulationrun 'framecomplete
+            'complete
+            'DO
+
+            '    clock_NES
+
+            'LOOP WHILE complete
+
+
+
+
             framecomplete = 0
         ELSE
 
@@ -181,7 +195,7 @@ SUB main ()
                     clock_NES
 
                 LOOP WHILE complete
-
+                _TITLE STR$(cycle)
             END IF
 
 
@@ -200,14 +214,21 @@ SUB main ()
 
         END IF
 
-
-
-
-
-        frames_per_sec
         episode3_UI
 
+        IF ImageValid = -1 THEN
+            WHILE _SNDRAWLEN < 0.1 AND ImageValid = -1
+                _SNDRAW 0.4 * (RND * 1 - 0.5)
+            WEND
+        END IF
 
+
+        IF _RESIZE THEN
+            oldimage& = displayarea
+            displayarea = _NEWIMAGE(_RESIZEWIDTH, _RESIZEHEIGHT, 32)
+            SCREEN displayarea
+            _FREEIMAGE oldimage&
+        END IF
 
         _PUTIMAGE , canvas, displayarea ' stretch canvas to fill the screen;
 
@@ -224,60 +245,6 @@ SUB main ()
 
 END SUB
 
-SUB episode3_UI ()
-
-    _DEST canvas
-
-
-
-    'LINE (0, 0)-(256 * scale, 240 * scale), _RGB(0, 0, 0), BF
-
-    CLS , _RGBA(0, 0, 128, 255)
-
-
-    ' _SETALPHA 150, , nestea_logo
-    '_SETALPHA 255, , nestea_logo
-    '_CLEARCOLOR _RGB32(0, 0, 0, 0), nestea_logo
-    'LINE (0, 0)-(256 * 2, 240 * 2), _RGBA(0, 0, 0, 255), BF
-    '   _dest nes_scrn
-
-
-
-    '_PUTIMAGE (0, 0)-(256 * 2, 240 * 2), nes_scrn, canvas
-
-    'PPU_clock
-
-    'test_code
-    _PUTIMAGE (0, 0)-(256 * 2, 240 * 2), nes_scrn, canvas
-    _DEST canvas
-
-    '  _PUTIMAGE (0, 0)-(500, 500), nestea_logo, canvas
-
-
-
-    '  DrawRAM 2, 2, &H0000, 16, 16
-    ' DrawRAM 2, 182, &H8000, 16, 16
-    'DrawAudio
-    DrawCPUepisode2 516, 2
-    DrawCodeepisode2 516, 72, 26
-
-
-
-    'Drawstring 10, 370, "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI", _RGB(255, 255, 255)
-
-
-    'FOR p = 0 TO 7
-    '    FOR s = 0 TO 3
-    '        rect_x = 516 + p * (6 * 5) + s * 6
-    '        rect_y = 340
-
-    '        LINE (rect_x, rect_y)-((rect_x + 6) - 1, (rect_y + 6) - 1), _RGB(0, 0, 0), BF
-
-    '    NEXT s
-    'NEXT p
-
-
-END SUB
 
 SUB nes_init ()
 
@@ -307,127 +274,6 @@ SUB nes_init ()
 END SUB
 
 
-SUB main_code
-
-
-    IF bEmulationrun THEN 'wip for now.... slowish
-
-        DO
-
-
-            clock_NES
-
-
-            '  _DISPLAY
-        LOOP WHILE NOT framecomplete 'bEmulationrun 'framecomplete
-        'complete
-        'DO
-
-        '    clock_NES
-
-        'LOOP WHILE complete
-
-
-
-
-        framecomplete = 0
-    ELSE
-
-        IF keypress(ASC("r")) THEN
-            reset_NES
-
-        END IF
-
-
-
-        'IF keypress(ASC("i")) THEN
-        '    irq
-
-        'END IF
-
-
-
-        'IF keypress(ASC("n")) THEN
-        '    nmi
-
-        'END IF
-
-
-        'run 1 whole frame
-        IF keypress(ASC("f")) THEN
-
-            DO
-
-                clock_NES
-
-            LOOP WHILE NOT framecomplete
-
-
-            DO
-
-                clock_NES
-
-
-
-
-
-            LOOP WHILE NOT complete
-            framecomplete = 0
-        END IF
-
-
-        'run code step by step
-        IF keypress(ASC("c")) THEN
-
-            DO
-
-                clock_NES
-
-            LOOP WHILE NOT complete
-
-
-            DO
-
-                clock_NES
-
-            LOOP WHILE complete
-            _TITLE STR$(cycle)
-        END IF
-
-
-
-    END IF
-    'run emulation
-    IF keypress(ASC(" ")) THEN
-        bEmulationrun = NOT bEmulationrun
-
-    END IF
-
-
-    'reset the NES
-    IF keypress(ASC("r")) THEN
-        reset_NES
-
-    END IF
-
-    episode3_UI
-
-    IF ImageValid = -1 THEN
-        WHILE _SNDRAWLEN < 0.1 AND ImageValid = -1
-            _SNDRAW 0.4 * (RND * 1 - 0.5)
-        WEND
-    END IF
-
-
-    IF _RESIZE THEN
-        oldimage& = displayarea
-        displayarea = _NEWIMAGE(_RESIZEWIDTH, _RESIZEHEIGHT, 32)
-        SCREEN displayarea
-        _FREEIMAGE oldimage&
-    END IF
-
-END SUB
-
 
 
 SUB frames_per_sec
@@ -450,57 +296,3 @@ END SUB
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-'SUB test_code
-
-'    framecomplete = 0
-'    ' CLS , _RGB32(0, 0, 0, 0)
-
-'    ' frames_per_sec
-'    _DEST statictv
-'    DO
-
-
-'        IF Rand(0, 1) = 0 THEN
-'            col1& = nes_pal1(&H3F&) '_RGB32(0, 0, 0, 255)
-
-'        ELSE
-
-'            col1& = nes_pal1(&H30&) ' _RGB32(255, 255, 255, 255)
-'        END IF
-'        PSET (cycle - 1, scanline), col1&
-
-'        cycle = cycle + 1
-'        IF cycle >= 341 THEN
-'            cycle = 0
-
-'            scanline = scanline + 1
-'            IF scanline >= 261 THEN
-'                framecomplete = -1
-'                scanline = -1
-
-'            END IF
-'        END IF
-'        '_DISPLAY
-'    LOOP WHILE NOT framecomplete
-
-
-'    '  _PUTIMAGE (0, 0)-(256 * 2, 240 * 2), statictv, canvas
-'    ' _DISPLAY
-
-'END SUB
