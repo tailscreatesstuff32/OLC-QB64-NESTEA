@@ -1,3 +1,4 @@
+![olc-nestea-ep03](https://user-images.githubusercontent.com/66333352/124857539-553fd300-df61-11eb-9d45-d90af115b0da.png)
 
 
 
@@ -14,7 +15,7 @@ EPISODE 2
 <IMG SRC ="https://user-images.githubusercontent.com/66333352/124371930-5f00c800-dc3b-11eb-9ab9-cd1602b4aa34.png" width=250 height=250></IMG>
 
 EPISODE 3
+<IMG SRC ="https://user-images.githubusercontent.com/66333352/124857539-553fd300-df61-11eb-9d45-d90af115b0da.png" width=250 height=250></IMG>
 
--- coming soon! :D --
 WORK IN PROGRESS
 
