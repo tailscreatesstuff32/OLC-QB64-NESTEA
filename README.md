@@ -1,5 +1,3 @@
-![olc-nestea-ep03](https://user-images.githubusercontent.com/66333352/124857539-553fd300-df61-11eb-9d45-d90af115b0da.png)
-
 
 
 
