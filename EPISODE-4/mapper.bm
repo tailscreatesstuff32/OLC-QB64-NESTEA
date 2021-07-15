@@ -1,0 +1,14 @@
+
+SUB Mapper (prgbanks AS _UNSIGNED _BYTE, chrbanks AS _UNSIGNED _BYTE)
+    n_PRGbanks = prgbanks
+    n_CHRbanks = chrbanks
+
+
+    reset_mapper
+END SUB
+
+
+SUB reset_mapper ()
+
+
+END SUB

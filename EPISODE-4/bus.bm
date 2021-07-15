@@ -1,0 +1,83 @@
+'the bus will represent the NES console
+
+'$include: 'olc6502.bm'
+'$include: 'olc2C02.bm'
+REM'$include: 'olc2A03.bm'
+'$include: 'cartridge.bm'
+
+
+SUB bus_cpuWrite (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
+
+    'cart first
+   IF cart_cpuWrite(addr, byte_data) THEN
+
+   elseIF addr >= &H0000~% AND addr <= &H1FFF~% THEN  'cpu ram addresses
+        cpuRam(addr AND &H07FF~%) = byte_data
+
+    ELSEIF addr >= &H2000~% AND addr <= &H3FFF~% THEN   'ppu addresses
+       ppu_cpuWrite addr AND &H0007~%, byte_data
+
+    ELSEIF addr >= &H4016~% AND adr <= &H4017~% THEN   'player controller addresses
+        controller_state(addr and &H0001) =  controller(addr and &H0001)
+
+        'TODO add player 2 controller
+
+    END IF
+
+END SUB
+
+FUNCTION bus_cpuRead~% (addr AS _UNSIGNED INTEGER, bReadOnly AS _UNSIGNED _BYTE)
+
+    DIM data_bus AS _UNSIGNED _BYTE
+
+
+    data_bus = &H00~%
+    'cart first
+   IF cart_cpuRead(addr, data_bus) THEN
+
+    elseiF addr >= &H0000~% AND addr <= &H1FFF~% THEN 'cpu ram addresses
+        data_bus = cpuRam(addr AND &H07FF~%)
+        '  &HC0
+    ELSEIF addr >= &H2000~% AND addr <= &H3FFF~% THEN   'ppu addresses
+     data_bus= ppu_cpuRead(addr AND &H0007~%, bReadOnly)
+
+    ELSEIF addr >= &H4016~% AND adr <= &H4017~% THEN   'player controller addresses
+      data_bus = (controller_state(addr and &H0001) and &H80~%) > 0
+      controller_state(addr and &H001) = _shl(controller_state(addr and &H001),1)
+
+      'TODO add player 2 controller
+
+    END IF
+
+    bus_cpuRead~% = data_bus
+END FUNCTION
+
+SUB InsertCartridge (cart) ' might not use?
+
+    'might not need?
+
+END SUB
+
+SUB reset_NES ()
+      reset_6502
+      nSystemClockCounter = 0  'unsure ????
+
+
+END SUB
+
+SUB clock_NES ()
+
+       PPU_clock
+  IF nSystemClockCounter MOD 3 = 0 THEN
+  ' called1 = called1 +1
+    cpu_clock
+  END IF
+
+
+     if ppu_nmi then
+           ppu_nmi = 0
+           nmi
+     end if
+
+   nSystemClockCounter = nSystemClockCounter + 1  'still unsure...
+END SUB
