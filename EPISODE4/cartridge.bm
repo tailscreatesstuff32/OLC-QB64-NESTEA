@@ -1,0 +1,344 @@
+
+$IF INCLUDED = UNDEFINED THEN
+    '$include: 'cartridge.bi'
+
+$END IF
+
+'cartridge "Mario Bros.nes", 0
+'REM _DEST _CONSOLE
+'IF cart_ImageValid THEN
+'    PRINT "Success!"
+'ELSE
+'    PRINT "failed!"
+
+'END IF
+
+
+
+'fully added mappers///////////
+
+'TODO mapper 66 originally for dragonball shen long no nazo?
+
+'$include: 'mapper_000.bm'
+
+'$include: 'mapper_002.bm'
+'$include: 'mapper_003.bm'
+'$include: 'mapper_066.bm'
+'//////////////////////////////
+
+
+'nearly completed////////////////
+'$include: 'mapper_004.bm'
+'////////////////////////////////
+
+
+
+'partially added mappers///////
+REM '$include: 'mapper_001.bm'
+
+'//////////////////////////////
+
+
+
+'future mappers////////////////
+'mapper 34 mainly for dragonball shen long no nazo
+'mapper 65 mainly for tetris
+
+REM '$include: 'mapper_034.bm'
+REM '$include: 'mapper_065.bm'
+'///////////////////////////////
+
+
+FUNCTION cart_cpuRead (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
+    DIM mapped_addr AS _UNSIGNED LONG
+
+    mapped_addr = 0
+
+    IF cpuMapRead(addr, mapped_addr, byte_data) THEN
+        IF mapped_addr = &HFFFFFFFF~& THEN
+
+            cart_cpuRead = 1
+            EXIT FUNCTION
+        ELSE
+            byte_data = vPRGMemory(mapped_addr)
+
+            ' _TITLE STR$(mapped_addr)
+            '  END
+            cart_cpuRead = 1
+            EXIT FUNCTION
+
+        END IF
+    ELSE
+
+        cart_cpuRead = 0
+
+    END IF
+
+END FUNCTION
+
+
+FUNCTION cart_cpuWrite (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
+    DIM mapped_addr AS _UNSIGNED LONG
+
+
+    mapped_addr = 0
+
+
+    IF cpuMapWrite(addr, mapped_addr, byte_data) THEN
+
+        IF mapped_addr = &HFFFFFFFF~& THEN
+
+            cart_cpuWrite = 1
+            EXIT FUNCTION
+        ELSE
+            vPRGMemory(mapped_addr) = byte_data
+
+        END IF
+        cart_cpuWrite = 1
+        EXIT FUNCTION
+
+
+    ELSE
+
+        cart_cpuWrite = 0
+    END IF
+
+END FUNCTION
+
+
+
+
+FUNCTION cart_ppuWrite (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
+    DIM mapped_addr AS _UNSIGNED LONG
+
+    mapped_addr = 0
+
+    IF ppuMapWrite(addr, mapped_addr) THEN
+        vCHRMemory(mapped_addr) = byte_data
+
+        cart_ppuWrite = 1
+    ELSE
+
+        cart_ppuWrite = 0
+    END IF
+
+END FUNCTION
+
+
+FUNCTION cart_ppuRead (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
+    DIM mapped_addr AS _UNSIGNED LONG
+
+    mapped_addr = 0
+
+    IF ppuMapRead(addr, mapped_addr) THEN
+        byte_data = vCHRMemory(mapped_addr)
+        cart_ppuRead = 1
+    ELSE
+        ' cart_ppuRead = 0
+        cart_ppuRead = 0
+    END IF
+
+END FUNCTION
+
+
+
+SUB insert_cartridge (cart AS STRING, cart_info_disp AS _BYTE)
+
+    'DIM vPRGMemory(0) AS _UNSIGNED _BYTE
+    'DIM vCHRMemory(0) AS _UNSIGNED _BYTE
+    'DIM nMapperID AS _UNSIGNED _BYTE
+    'DIM nPRGBanks AS _UNSIGNED _BYTE
+    'DIM nCHRBanks AS _UNSIGNED _BYTE
+
+    'DIM nMapperID AS _UNSIGNED _BYTE
+    DIM orig_dest AS _UNSIGNED LONG
+    DIM nPRGBanks AS _UNSIGNED _BYTE
+    DIM nCHRBanks AS _UNSIGNED _BYTE
+    $CONSOLE
+
+    _CONSOLETITLE "NEStea Debuggger"
+
+
+    orig_dest = _DEST
+    'mapper ????
+    IF cart_info_disp = 1 THEN
+        _CONSOLE ON
+
+
+        _DEST _CONSOLE
+    ELSE
+        _CONSOLE OFF
+
+
+    END IF
+
+    nMapperID = 0
+    nPRGBanks = 0
+    nCHRBanks = 0
+
+    bImageValid = -1
+
+
+    file$ = cart
+
+    IF _FILEEXISTS(file$) THEN
+        PRINT "found rom"
+
+
+
+        OPEN file$ FOR BINARY AS #1
+
+
+        GET #1, , header
+
+        PRINT "magic number: ";
+        PRINT header.name_nes
+
+
+
+        IF header.mapper1 AND &H04 THEN
+            PRINT "has trainer-skipping"
+            SEEK #1, 512
+
+        ELSE
+            PRINT "no trainer"
+        END IF
+
+
+
+        IF header.mapper1 AND &H01 THEN
+            mirror$ = "VERTICAL"
+        ELSE
+            mirror$ = "HORIZONTAL"
+        END IF
+        'ONESCREEN_LO
+        'ONESCREEN_HI
+
+
+        PRINT "mirror mode: "; mirror$
+
+
+        nMapperID = _SHL(_SHR(header.mapper2, 4), 4) OR _SHR(header.mapper1, 4)
+
+
+
+        nFileType = 1
+
+        IF header.mapper2 AND &H0C = &H08 THEN
+            nFileType = 2
+        END IF
+
+
+
+        IF nFileType = 0 THEN
+
+        END IF
+
+        IF nFileType = 1 THEN
+            PRINT "file type:" + STR$(nFileType)
+            nPRGBanks = header.prg_rom_chunks
+            REDIM vPRGMemory((nPRGBanks * 16384) - 1)
+            GET #1, , vPRGMemory()
+            PRINT "NUM PRG BANKS:" + STR$(nPRGBanks)
+            PRINT "PRG ROM SIZE:" + STR$(LEN(vPRGMemory()))
+
+            nCHRBanks = header.chr_rom_chunks
+
+            PRINT "NUM CHR BANKS:" + STR$(nCHRBanks)
+            IF nCHRBanks = 0 THEN
+                REDIM vCHRMemory(8192 - 1)
+                PRINT "CHR RAM: " + STR$(LEN(vCHRMemory()))
+            ELSE
+                '   PRINT "CHR ROM"
+                REDIM vCHRMemory((nCHRBanks * 8192) - 1)
+                PRINT "CHR ROM SIZE:" + STR$(LEN(vCHRMemory()))
+
+            END IF
+            GET #1, , vCHRMemory()
+
+
+        END IF
+
+
+        IF nFileType = 2 THEN
+            PRINT "file type WORK IN PROGRESS:" + STR$(nFileType)
+        END IF
+
+        SELECT CASE nMapperID
+
+            CASE 0:
+
+                PRINT "valid mapper-found Mapper:" + STR$(nMapperID)
+
+
+                mapper_000 nPRGBanks, nCHRBanks
+
+                'CASE 1:
+
+                '    PRINT "valid mapper-found Mapper WORK IN PROGRESS: " + STR$(nMapperID)
+
+                '    ' mapper_001 nPRGBanks, nCHRBanks
+
+                'CASE 2:
+
+                '    PRINT "valid mapper-found Mapper WORKING:" + STR$(nMapperID)
+                '    mapper_002 nPRGBanks, nCHRBanks
+
+                'CASE 3:
+
+                '    PRINT "valid mapper-found Mapper WORKING:" + STR$(nMapperID)
+                '    mapper_003 nPRGBanks, nCHRBanks
+
+
+            CASE 4:
+
+                PRINT "valid mapper-found Mapper WORK IN PROGRESS: " + STR$(nMapperID)
+
+                mapper_004 nPRGBanks, nCHRBanks
+
+                '    'CASE 65:
+
+                '    '    PRINT "valid mapper-found Mapper WORK IN PROGRESS:" + STR$(nMapperID)
+
+                '    ' mapper_065 nPRGBanks, nCHRBanks
+
+
+                'CASE 66:
+
+                '    PRINT "valid mapper-found Mapper WORK IN PROGRESS:" + STR$(nMapperID)
+
+                '    mapper_066 nPRGBanks, nCHRBanks
+
+            CASE ELSE:
+                PRINT "invalid mapper:" + STR$(nMapperID)
+        END SELECT
+
+        bImageValid = 1
+        CLOSE #1
+
+    ELSE
+        bImageValid = 0
+        PRINT "rom not found"
+    END IF
+
+
+    IF cart_info_disp = 1 THEN
+        _DEST orig_dest
+    END IF
+END SUB
+
+
+FUNCTION cart_ImageValid ()
+
+    cart_ImageValid = bImageValid
+END FUNCTION
+
+SUB cart_reset ()
+    reset_mapper
+    '  Mapper_001_Reset
+
+END SUB
+
+
+
+

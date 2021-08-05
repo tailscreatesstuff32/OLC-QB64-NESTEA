@@ -1,0 +1,84 @@
+
+
+SUB mapper_002 (prg_banks AS _UNSIGNED _BYTE, chr_banks AS _UNSIGNED _BYTE)
+   Mapper prg_banks, chr_banks,2
+
+END SUB
+
+FUNCTION cpuMap02Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+    IF addr >= &H8000~% AND addr <= &HBFFF~% THEN
+
+        mapped_addr = nPRGBankSelectLo * &H4000~% + (addr AND &H3FFF~%)
+        cpuMap02Read = 1
+        EXIT FUNCTION
+    END IF
+
+    IF addr >= &HC000~% AND addr <= &HFFFF~% THEN
+
+        mapped_addr = nPRGBankSelectHi * &H4000~% + (addr AND &H3FFF~%)
+
+       cpuMap02Read = 1
+        EXIT FUNCTION
+    END IF
+
+  cpuMap02Read = 0
+
+END FUNCTION
+
+
+FUNCTION cpuMap02Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+
+
+    IF addr >= &H8000~% AND addr <= &HFFFF~% THEN
+
+        nPRGBankSelectLo = byte_data AND &H0F
+
+    END IF
+    cpuMap02Write = 0
+
+
+
+END FUNCTION
+
+
+FUNCTION ppuMap02Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+    IF addr < &H2000~% THEN
+
+        mapped_addr = addr
+
+       ppuMap02Read= 1
+    ELSE
+        ppuMap02Read = 0
+    END IF
+
+
+END FUNCTION
+
+
+FUNCTION ppuMap02Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+
+    IF addr < &H2000~% THEN
+        IF n_CHRbanks = 0 THEN
+
+            ' Treat as RAM
+            mapped_addr = addr
+            ppuMap02Write = 1
+            EXIT FUNCTION
+        END IF
+
+
+    END IF
+   ppuMap02Write = 0
+
+
+
+END FUNCTION
+
+SUB Mapper_002_Reset ()
+
+    nPRGBankSelectLo = 0
+    nPRGBankSelectHi = n_PRGbanks - 1
+
+END SUB

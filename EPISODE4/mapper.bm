@@ -1,0 +1,446 @@
+REM'$include: 'mapper_000.bi'
+
+
+
+
+SUB Mapper (prgbanks AS _UNSIGNED _BYTE, chrbanks AS _UNSIGNED _BYTE, NUM AS _UNSIGNED _BYTE)
+    n_PRGbanks = prgbanks
+    n_CHRbanks = chrbanks
+
+    MAPPER_NUM = NUM
+    reset_mapper
+END SUB
+
+
+
+
+
+
+FUNCTION cpuMapRead (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+    IF MAPPER_NUM = 0 THEN
+
+        cpuMapRead = cpuMap00Read(addr, mapped_addr, byte_data)
+
+    END IF
+
+    'IF MAPPER_NUM = 1 THEN
+
+    '    cpuMapRead = cpuMap01Read(addr, mapped_addr, byte_data)
+
+    'END IF
+
+    'IF MAPPER_NUM = 2 THEN
+
+    '    cpuMapRead = cpuMap02Read(addr, mapped_addr, byte_data)
+
+    'END IF
+
+    'IF MAPPER_NUM = 3 THEN
+
+    '    cpuMapRead = cpuMap03Read(addr, mapped_addr, byte_data)
+    'END IF
+
+
+    IF MAPPER_NUM = 4 THEN
+
+
+        cpuMapRead = cpuMap04Read(addr, mapped_addr, byte_data)
+
+    END IF
+
+    'IF MAPPER_NUM = 66 THEN
+    '    cpuMapRead = cpuMap66Read(addr, mapped_addr, byte_data)
+
+    'END IF
+
+
+
+
+
+
+    ''IF MAPPER_NUM = 0 THEN
+
+    ''    cpuMapRead = cpuMap00Read(addr, mapped_addr, byte_data)
+
+    ''END IF
+
+    ''IF MAPPER_NUM = 1 THEN
+
+    ''    cpuMapRead = cpuMap01Read(addr, mapped_addr, byte_data)
+
+    ''END IF
+
+    ''IF MAPPER_NUM = 2 THEN
+
+    ''    cpuMapRead = cpuMap02Read(addr, mapped_addr, byte_data)
+
+    ''END IF
+
+    ''IF MAPPER_NUM = 3 THEN
+
+    ''    cpuMapRead = cpuMap03Read(addr, mapped_addr, byte_data)
+    ''END IF
+
+
+    IF MAPPER_NUM = 4 THEN
+
+
+        cpuMapRead = cpuMap04Read(addr, mapped_addr, byte_data)
+
+    END IF
+
+    ''IF MAPPER_NUM = 66 THEN
+    ''    cpuMapRead = cpuMap66Read(addr, mapped_addr, byte_data)
+
+    ''END IF
+
+
+
+
+END FUNCTION
+
+
+FUNCTION cpuMapWrite (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+
+    IF MAPPER_NUM = 0 THEN
+        cpuMapWrite = cpuMap00Write(addr, mapped_addr, byte_data)
+
+    END IF
+
+    'IF MAPPER_NUM = 1 THEN
+    '    cpuMapWrite = cpuMap01Write(addr, mapped_addr, byte_data)
+    'END IF
+
+    'IF MAPPER_NUM = 2 THEN
+
+    '    cpuMapWrite = cpuMap02write(addr, mapped_addr, byte_data)
+
+    'END IF
+
+    'IF MAPPER_NUM = 3 THEN
+
+
+    '    cpuMapWrite = cpuMap03Write(addr, mapped_addr, byte_data)
+
+    'END IF
+
+
+    IF MAPPER_NUM = 4 THEN
+
+        cpuMapWrite = cpuMap04Write(addr, mapped_addr, byte_data)
+
+    END IF
+
+    'IF MAPPER_NUM = 66 THEN
+
+    '    cpuMapWrite = cpuMap66Write(addr, mapped_addr, byte_data)
+    'END IF
+
+
+
+
+
+
+
+
+
+    ''IF MAPPER_NUM = 0 THEN
+    ''    cpuMapWrite = cpuMap00Write(addr, mapped_addr, byte_data)
+
+    ''END IF
+
+    ''IF MAPPER_NUM = 1 THEN
+    ''    cpuMapWrite = cpuMap01Write(addr, mapped_addr, byte_data)
+    ''END IF
+
+    ''IF MAPPER_NUM = 2 THEN
+
+    ''    cpuMapWrite = cpuMap02write(addr, mapped_addr, byte_data)
+
+    ''END IF
+
+    ''IF MAPPER_NUM = 3 THEN
+
+
+    ''    cpuMapWrite = cpuMap03Write(addr, mapped_addr, byte_data)
+
+    ''END IF
+
+
+    'IF MAPPER_NUM = 4 THEN
+
+    '    cpuMapWrite = cpuMap04Write(addr, mapped_addr, byte_data)
+
+    'END IF
+
+    ''IF MAPPER_NUM = 66 THEN
+
+    ''    cpuMapWrite = cpuMap66Write(addr, mapped_addr, byte_data)
+    ''END IF
+
+
+
+
+END FUNCTION
+
+
+FUNCTION ppuMapRead (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+    IF MAPPER_NUM = 0 THEN
+        ppuMapRead = ppuMap00Read(addr, mapped_addr)
+    END IF
+
+    ''IF MAPPER_NUM = 1 THEN
+
+    ''    ppuMapRead = ppuMap01Read(addr, mapped_addr)
+
+    ''END IF
+
+    IF MAPPER_NUM = 2 THEN
+
+        ppuMapRead = ppuMap02Read(addr, mapped_addr)
+
+    END IF
+
+    IF MAPPER_NUM = 3 THEN
+
+
+        ppuMapRead = ppuMap03Read(addr, mapped_addr)
+
+    END IF
+
+
+    IF MAPPER_NUM = 4 THEN
+
+
+        ppuMapRead = ppuMap04Read(addr, mapped_addr)
+    END IF
+
+    IF MAPPER_NUM = 66 THEN
+
+        ppuMapRead = ppuMap66Read(addr, mapped_addr)
+    END IF
+
+
+
+
+
+
+
+    'IF MAPPER_NUM = 0 THEN
+    '    ppuMapRead = ppuMap00Read(addr, mapped_addr)
+    'END IF
+
+    'IF MAPPER_NUM = 1 THEN
+
+    '    ppuMapRead = ppuMap01Read(addr, mapped_addr)
+
+    'END IF
+
+    'IF MAPPER_NUM = 2 THEN
+
+    '    ppuMapRead = ppuMap02Read(addr, mapped_addr)
+
+    'END IF
+
+    'IF MAPPER_NUM = 3 THEN
+
+
+    '    ppuMapRead = ppuMap03Read(addr, mapped_addr)
+
+    'END IF
+
+
+    'IF MAPPER_NUM = 4 THEN
+
+
+    '    ppuMapRead = ppuMap04Read(addr, mapped_addr)
+    'END IF
+
+    'IF MAPPER_NUM = 66 THEN
+
+    '    ppuMapRead = ppuMap66Read(addr, mapped_addr)
+    'END IF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+END FUNCTION
+
+
+FUNCTION ppuMapWrite (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+    IF MAPPER_NUM = 0 THEN
+
+        ppuMapWrite = ppuMap00Write(addr, mapped_addr)
+    END IF
+
+    ''IF MAPPER_NUM = 1 THEN
+
+
+    ''    ppuMapWrite = ppuMap01Write(addr, mapped_addr)
+
+    ''END IF
+
+    IF MAPPER_NUM = 2 THEN
+
+        ppuMapWrite = ppuMap02Write(addr, mapped_addr)
+
+    END IF
+
+    IF MAPPER_NUM = 3 THEN
+
+
+        ppuMapWrite = ppuMap03Write(addr, mapped_addr)
+
+    END IF
+
+
+    IF MAPPER_NUM = 4 THEN
+
+
+
+        ppuMapWrite = ppuMap04Write(addr, mapped_addr)
+    END IF
+
+    IF MAPPER_NUM = 66 THEN
+
+
+
+        ppuMapWrite = ppuMap66Write(addr, mapped_addr)
+
+    END IF
+
+
+
+
+
+
+
+
+    'IF MAPPER_NUM = 0 THEN
+
+    '    ppuMapWrite = ppuMap00Write(addr, mapped_addr)
+    'END IF
+
+    'IF MAPPER_NUM = 1 THEN
+
+
+    '    ppuMapWrite = ppuMap01Write(addr, mapped_addr)
+
+    'END IF
+
+    'IF MAPPER_NUM = 2 THEN
+
+    '    ppuMapWrite = ppuMap02Write(addr, mapped_addr)
+
+    'END IF
+
+    'IF MAPPER_NUM = 3 THEN
+
+
+    '    ppuMapWrite = ppuMap03Write(addr, mapped_addr)
+
+    'END IF
+
+
+    'IF MAPPER_NUM = 4 THEN
+
+
+
+    '    ppuMapWrite = ppuMap04Write(addr, mapped_addr)
+    'END IF
+
+    '    IF MAPPER_NUM = 66 THEN
+
+
+
+    '        ppuMapWrite = ppuMap66Write(addr, mapped_addr)
+
+    '    END IF
+
+
+
+
+END FUNCTION
+
+
+
+
+
+
+
+
+
+
+
+
+SUB reset_mapper
+    ' Mapper_002_Reset
+
+
+    IF MAPPER_NUM = 0 THEN
+
+
+        Mapper_000_Reset   'doesnt need resetting
+
+    END IF
+
+    'IF MAPPER_NUM = 1 THEN
+
+
+    '    Mapper_001_Reset   'doesnt need resetting
+
+    'END IF
+
+    IF MAPPER_NUM = 2 THEN
+
+
+        Mapper_002_Reset   'doesnt need resetting
+
+    END IF
+
+    IF MAPPER_NUM = 3 THEN
+
+
+        Mapper_003_Reset   'doesnt need resetting
+
+    END IF
+
+
+    IF MAPPER_NUM = 4 THEN
+
+
+        Mapper_004_Reset   'doesnt need resetting
+
+    END IF
+
+    IF MAPPER_NUM = 66 THEN
+
+
+        Mapper_066_Reset   'doesnt need resetting
+
+    END IF
+
+END SUB
+
+
+REM '$include: 'mapper_000.bm'
+
+
+
+
+
+
+
+
