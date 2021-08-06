@@ -3,75 +3,94 @@
 
 
 
-FUNCTION cpuMapRead (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+SUB mapper_000 (prg_banks AS _UNSIGNED _BYTE, chr_banks AS _UNSIGNED _BYTE)
+    Mapper prg_banks, chr_banks, 0
 
-    DIM num_of_banks AS _UNSIGNED INTEGER
-    IF addr >= &H8000~% AND addr <= &HFFFF~% THEN
+END SUB
 
+FUNCTION cpuMap00Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, unused AS _UNSIGNED _BYTE)
 
-        IF nPRGbanks > 1 THEN num_of_banks = &H7FFF~%: ELSE num_of_banks = &H3FFF~%
-        mapped_addr = addr AND num_of_banks
+    IF addr >= &H8000~& AND addr <= &HFFFF~& THEN
+        IF n_PRGbanks > 1 THEN
 
+            mapped_addr = (addr AND &H7FFF~&)
+        ELSE
 
-        cpuMapRead = 1
+            mapped_addr = (addr AND &H3FFF~&)
+        END IF
 
-    ELSE
-        cpuMapRead = 0
-
-    END IF
-END FUNCTION
-
-
-FUNCTION cpuMapWrite (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
-
-    DIM num_of_banks AS _UNSIGNED INTEGER
-    IF addr >= &H8000~% AND addr <= &HFFFF~% THEN
-
-        IF nPRGbanks > 1 THEN num_of_banks = &H7FFF~%: ELSE num_of_banks = &H3FFF~%
-        mapped_addr = addr AND num_of_banks
-
-
-
-        cpuMapWrite = 1
-    ELSE
-        cpuMapWrite = 0
+        cpuMap00Read = 1
+        EXIT FUNCTION
+        ' ELSE
+        'cpuMap00Read = 0
 
     END IF
+    cpuMap00Read = 0
 
 END FUNCTION
 
 
-FUNCTION ppuMapRead (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+FUNCTION cpuMap00Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, unused AS _UNSIGNED _BYTE)
+
+    IF addr >= &H8000~& AND addr <= &HFFFF~& THEN
+
+
+        IF n_PRGbanks > 1 THEN
+            mapped_addr = (addr AND &H7FFF~&)
+
+        ELSE
+            mapped_addr = (addr AND &H3FFF~&)
+
+        END IF
+        cpuMap00Write = 1
+        EXIT FUNCTION
+        ' ELSE
+        ' cpuMap00Write = 0
+    END IF
+    cpuMap00Write = 0
+END FUNCTION
+
+
+FUNCTION ppuMap00Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
 
     IF addr >= &H0000 AND addr <= &H1FFF~% THEN
 
         mapped_addr = addr
 
-        ppuMapRead = 1
-    ELSE
-        ppuMapRead = 0
-    END IF
+        ppuMap00Read = 1
+        EXIT FUNCTION
+        ' ELSE
+        '   ppuMap00Read = 0
 
+    END IF
+    ppuMap00Read = 0
 
 END FUNCTION
 
 
-FUNCTION ppuMapWrite (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+FUNCTION ppuMap00Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
 
 
     IF addr >= &H0000 AND addr <= &H1FFF~% THEN
 
-        IF nCHRBanks = 0 THEN
+        IF n_CHRbanks = 0 THEN
 
             ' Treat as RAM
             mapped_addr = addr
-            ppuMapWrite = 1
-        ELSE
-            ppuMapWrite = 0
+            ppuMap00Write = 1
+            EXIT FUNCTION
+            ' ELSE
+            '     ppuMap00Write = 0
         END IF
     END IF
-
+    ppuMap00Write = 0
 
 END FUNCTION
+
+SUB Mapper_000_Reset ()
+
+    'nothing to reset
+END SUB
+
 
 

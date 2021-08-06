@@ -1,0 +1,174 @@
+
+REM '$include: 'mapper.bm'
+
+
+
+SUB mapper_001 (prg_banks AS _UNSIGNED _BYTE, chr_banks AS _UNSIGNED _BYTE)
+
+
+
+    REDIM vRAMStatic(32 * 1024)
+
+
+
+    Mapper prg_banks, chr_banks,1
+
+END SUB
+
+FUNCTION cpuMap01Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+
+    IF (addr >= &H6000~% AND addr <= &H7FFF~%) THEN
+
+        '   // Read is from static ram on cartridge
+        mapped_addr = &HFFFFFFFF~&
+
+        '  // Read data from RAM
+        byte_data = vRAMStatic(addr AND &H1FFF~%)
+
+        '   // Signal mapper has handled request
+        cpumap01read = 1
+        EXIT FUNCTION
+    END IF
+
+    IF (addr >= &H8000~%) THEN
+
+        IF (nControlRegister AND &B01000~%) THEN
+
+            '  // 16K Mode
+            IF (addr >= &H8000~% AND addr <= &HBFFF~%) THEN
+
+                mapped_addr = nPRGBankSelect16Lo * &H4000~% + (addr AND &H3FFF~%)
+                cpumap01read = 1
+                EXIT FUNCTION
+            END IF
+
+            IF (addr >= &HC000~% AND addr <= &HFFFF~%) THEN
+
+                mapped_addr = nPRGBankSelect16Hi * &H4000~% + (addr AND &H3FFF~%)
+                cpumap01read = 1
+                EXIT FUNCTION
+            END IF
+
+        ELSE
+
+            ' // 32K Mode
+            mapped_addr = nPRGBankSelect32 * &H8000~% + (addr AND &H7FFF~%)
+            cpumap01read = 1
+            EXIT FUNCTION
+
+        END IF
+    END IF
+
+
+    cpumap01read = 0
+
+END FUNCTION
+
+
+FUNCTION cpuMap01Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+
+
+    'IF addr >= &H8000~% AND addr <= &HFFFF~% THEN
+
+    '    nPRGBankSelectLo = byte_data AND &H0F
+
+    'END IF
+    'cpuMapWrite = 0
+
+
+
+END FUNCTION
+
+
+FUNCTION ppuMap01Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+    IF addr < &H2000~% THEN
+
+        IF (nCHRBanks = 0) THEN
+
+            mapped_addr = addr
+            ppuMap01Read = 1
+            EXIT FUNCTION
+
+        ELSE
+            IF (nControlRegister AND &B10000~%) THEN
+                '  // 4K CHR Bank Mode
+                IF (addr >= &H0000~% AND addr <= &H0FFF~%) THEN
+
+                    mapped_addr = nCHRBankSelect4Lo * &H1000~% + (addr AND &H0FFF~%)
+                    ppuMap01Read = 1
+                    EXIT FUNCTION
+                END IF
+
+                IF (addr >= &H1000~% AND addr <= &H1FFF~%) THEN
+
+                    mapped_addr = nCHRBankSelect4Hi * &H1000~% + (addr AND &H0FFF~%)
+                    ppuMap01Read = 1
+                    EXIT FUNCTION
+                END IF
+
+            ELSE
+
+                '  // 8K CHR Bank Mode
+                mapped_addr = nCHRBankSelect8 * &H2000~% + (addr AND &H1FFF~%)
+                ppuMap01Read = 1
+                EXIT FUNCTION
+            END IF
+
+
+
+
+
+
+        END IF
+
+
+    END IF
+
+
+
+END FUNCTION
+
+
+FUNCTION ppuMap01Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+
+    IF addr < &H2000~% THEN
+        IF n_CHRbanks = 0 THEN
+
+            ' Treat as RAM
+            mapped_addr = addr
+            ppuMap01Write = 1
+            EXIT FUNCTION
+        END IF
+        ppuMap01Write = 1
+    ELSE
+        ppuMap01Write = 0
+
+
+
+    END IF
+
+END FUNCTION
+
+SUB Mapper_001_reset
+
+
+    nControlRegister = &H1C
+    nLoadRegister = &H0
+    nLoadRegisterCount = &H0
+
+    nCHRBankSelect4Lo = &H0
+    nCHRBankSelect4Hi = &H0
+    nCHRBankSelect8 = &H0
+
+    nPRGBankSelect32 = &H0
+    nPRGBankSelect16Lo = &H0
+    nPRGBankSelect16Hi = n_PRGbanks - 1
+
+END SUB
+
+FUNCTION get_mirror_mode ()
+    get_mirror_mode = mirror.mode
+
+END FUNCTION
