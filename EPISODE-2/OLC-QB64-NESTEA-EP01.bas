@@ -1,4 +1,4 @@
-DIM SHARED keys(255) AS _BYTE
+  DIM SHARED keys(255) AS _BYTE
 
 
 '$include: 'bus.bi'
@@ -288,6 +288,4 @@ END FUNCTION
 
 
 '$include: 'bus.bm'
-
-
 

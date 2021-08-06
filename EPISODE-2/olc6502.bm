@@ -1,15 +1,5 @@
 
 SUB reset_6502 ()
-    'SHARED cpu_regs AS regs_6502
-    'SHARED addr_abs AS _UNSIGNED INTEGER
-    'SHARED addr_rel AS _UNSIGNED INTEGER
-    'SHARED fetched AS _UNSIGNED _BYTE
-    'SHARED cycles AS _UNSIGNED _BYTE
-    'SHARED hi AS _UNSIGNED INTEGER
-    'SHARED lo AS _UNSIGNED INTEGER
-
-
-
 
     addr_abs = &HFFFC
     lo = read_from_bus(addr_abs + 0)
@@ -32,9 +22,6 @@ END SUB
 
 
 SUB cpu_Clock
-    'SHARED opcode AS _UNSIGNED _BYTE
-    'SHARED cpu_regs AS regs_6502
-    'SHARED cycles AS _UNSIGNED _BYTE
 
 
     DIM additional_cycle1 AS _UNSIGNED _BYTE
@@ -73,7 +60,7 @@ END SUB
 
 
 FUNCTION complete        'tested-WORKS FINE
-    'SHARED cycles AS _UNSIGNED _BYTE
+
 
     complete = cycles = 0
 
@@ -82,7 +69,7 @@ END FUNCTION
 
 
 SUB set_flag (f AS _UNSIGNED _BYTE, bool AS _UNSIGNED _BYTE)
-    'SHARED cpu_regs AS regs_6502
+
     IF bool THEN
         cpu_regs.status = cpu_regs.status OR f
     ELSE
@@ -97,7 +84,7 @@ END SUB
 
 
 FUNCTION get_flag (f AS _UNSIGNED _BYTE)
-    'SHARED cpu_regs AS regs_6502
+
 
     IF cpu_regs.status AND f THEN
         get_flag = 1
@@ -109,10 +96,6 @@ END FUNCTION
 
 '----------------------------------------------  'tested-WORKS FINE
 SUB fetch
-    'SHARED opcode AS _UNSIGNED _BYTE
-    'SHARED addr_abs AS _UNSIGNED INTEGER
-    'SHARED addr_rel AS _UNSIGNED INTEGER
-    'SHARED fetched AS _UNSIGNED _BYTE
 
     'not finshed  WIP
     IF NOT instructions(opcode).addrmode = addr_mode_IMP THEN
@@ -125,15 +108,6 @@ END SUB
 
 
 SUB irq ()
-    'SHARED cpu_regs AS regs_6502
-    'SHARED addr_abs AS _UNSIGNED INTEGER
-    'SHARED addr_rel AS _UNSIGNED INTEGER
-    'SHARED fetched AS _UNSIGNED _BYTE
-    'SHARED cycles AS _UNSIGNED _BYTE
-    'SHARED hi AS _UNSIGNED INTEGER
-    'SHARED lo AS _UNSIGNED INTEGER
-
-
 
     DIM hi AS _UNSIGNED INTEGER
     DIM lo AS _UNSIGNED INTEGER
@@ -164,13 +138,6 @@ END SUB
 
 
 SUB nmi ()
-    'SHARED cpu_regs AS regs_6502
-    'SHARED addr_abs AS _UNSIGNED INTEGER
-    'SHARED addr_rel AS _UNSIGNED INTEGER
-    'SHARED fetched AS _UNSIGNED _BYTE
-    'SHARED cycles AS _UNSIGNED _BYTE
-    'SHARED hi AS _UNSIGNED INTEGER
-    'SHARED lo AS _UNSIGNED INTEGER
 
 
 
@@ -247,26 +214,6 @@ sub  disassemble(maparray() as string,nStart as _unsigned integer,nStop as _unsi
 DIM line_addr AS _UNSIGNED INTEGER
 DIM  sInst AS STRING
 
-'TYPE OPS
-'    op_name AS STRING
-'    addrmode AS _UNSIGNED _BYTE
-'    cycles AS _UNSIGNED _BYTE
-
-'addr_mode_IMP = 0
-'add_mode_ZPO = 1
-'add_mode_ZPY = 2
-'add_mode_ABS = 3
-'add_mode_ABY = 4
-'add_mode_IZX = 5
-'add_mode_IMM = 6
-'add_mode_REL = 7
-'add_mode_ABX = 8
-'addr_mode_IND = 9
-'addr_mode_IZY = 10
-'addr_mode_ZPX = 11
-
-
-'END TYPE
 
           redim maplines(65535) as string
 
@@ -279,7 +226,7 @@ DIM  sInst AS STRING
 
 
               op = bus_read(addr,1)
-               '_title str$( addr )
+
 
                addr  =  addr  + 1
 
@@ -350,8 +297,6 @@ DIM  sInst AS STRING
 
                   end if
                maparray(line_addr) = sinst
-             '  i=i+1
-
 
 
 
@@ -359,40 +304,9 @@ DIM  sInst AS STRING
 
 
 
-      '  disassemble  = maplines()
-
-
 
 
 end sub
-
-'uint8_t ADC();  uint8_t AND();  uint8_t ASL();  uint8_t BCC();
-'uint8_t BCS();  uint8_t BEQ();  uint8_t BIT();  uint8_t BMI();
-'uint8_t BNE();  uint8_t BPL();  uint8_t BRK();  uint8_t BVC();
-'uint8_t BVS();  uint8_t CLC();  uint8_t CLD();  uint8_t CLI();
-'uint8_t CLV();  uint8_t CMP();  uint8_t CPX();  uint8_t CPY();
-'uint8_t DEC();  uint8_t DEX();  uint8_t DEY();  uint8_t EOR();
-'uint8_t INC();  uint8_t INX();  uint8_t INY();  uint8_t JMP();
-'uint8_t JSR();  uint8_t LDA();  uint8_t LDX();  uint8_t LDY();
-'uint8_t LSR();  uint8_t NOP();  uint8_t ORA();  uint8_t PHA();
-'uint8_t PHP();  uint8_t PLA();  uint8_t PLP();  uint8_t ROL();
-'uint8_t ROR();  uint8_t RTI();  uint8_t RTS();  uint8_t SBC();
-'uint8_t SEC();  uint8_t SED();  uint8_t SEI();  uint8_t STA();
-'uint8_t STX();  uint8_t STY();  uint8_t TAX();  uint8_t TAY();
-'uint8_t TSX();  uint8_t TXA();  uint8_t TXS();  uint8_t TYA();
-
-
-'uint8_t XXX();
-
-
-
-'uint8_t IMP();  uint8_t IMM();
-'uint8_t ZP0();  uint8_t ZPX();
-'uint8_t ZPY();  uint8_t REL();
-'uint8_t ABS();  uint8_t ABX();
-'uint8_t ABY();  uint8_t IND();
-'uint8_t IZX();  uint8_t IZY();
-
 
 '$include: 'addressmodes_6502.bm'
 '$include: 'instructions_6502.bm'
