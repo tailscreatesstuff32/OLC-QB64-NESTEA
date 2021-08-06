@@ -1,0 +1,71 @@
+
+REM '$include: 'mapper.bm'
+
+
+
+SUB mapper_003 (prg_banks AS _UNSIGNED _BYTE, chr_banks AS _UNSIGNED _BYTE)
+    Mapper prg_banks, chr_banks,3
+
+END SUB
+
+FUNCTION cpuMap03Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+    IF (addr >= &H8000~% AND addr <= &HFFFF~%) THEN
+
+        IF (nPRGBanks = 1) THEN '// 16K ROM
+            mapped_addr = addr AND &H3FFF~%
+        END IF
+        IF (nPRGBanks = 2) THEN '// 32K ROM
+            mapped_addr = addr AND &H7FFF~%
+            cpuMap03Read = 1
+            EXIT FUNCTION
+        END IF
+
+    ELSE
+        cpuMap03Read = 0
+    END IF
+
+END FUNCTION
+
+
+FUNCTION cpuMap03Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+
+    IF addr >= &H8000~% AND addr <= &HFFFF~% THEN
+
+        nCHRBankSelect = byte_data AND &H03~%
+        mapped_addr = addr
+    END IF
+
+    ' // Mapper has handled write, but do not update ROMs
+    cpuMap03Write = 0
+
+END FUNCTION
+
+
+FUNCTION ppuMap03Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+    IF (addr < &H2000~%) THEN
+
+        mapped_addr = nCHRBankSelect * &H2000~% + addr
+        ppuMap03Read = 1
+        EXIT FUNCTION
+
+    ELSE
+        ppuMap03Read = 0
+
+    END IF
+END FUNCTION
+
+
+FUNCTION ppuMap03Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+    ppuMap03Write = 0
+
+
+
+END FUNCTION
+
+SUB Mapper_003_Reset ()
+    nCHRBankSelect = 0
+
+END SUB
+

@@ -1,4 +1,15 @@
 
+$IF INCLUDED = UNDEFINED THEN
+    '$include: 'olc6502.bi'
+
+$END IF
+
+
+
+
+
+
+
 SUB reset_6502 ()
     'SHARED cpu_regs AS regs_6502
     'SHARED addr_abs AS _UNSIGNED INTEGER
@@ -16,12 +27,26 @@ SUB reset_6502 ()
     hi = read_from_bus(addr_abs + 1)
 
     cpu_regs.pc = _SHL(hi, 8) OR lo
-    cpu_regs.a_reg = 0
-    cpu_regs.x_reg = 0
+    cpu_regs.a_reg = &H00
+    cpu_regs.x_reg = &H00
+    cpu_regs.y_reg = &H00
     cpu_regs.stkp = &HFD
 
     cpu_regs.status = &H00 OR cpu_regs.flags.U
-  '  cpu_regs.pc = &H0000
+    'cpu_regs.pc = &H7FFF~%
+    '  cpu_regs.pc = &H805B~%
+
+    ' cpu_regs.pc = &H804C~%
+
+    '  cpu_regs.pc = &H8E09~%
+
+    '  cpu_regs.pc = &H8EB8~%
+
+
+    ' cpu_regs.pc = &H8EBB~%
+
+
+    ' cpu_regs.pc = &HC03D~%
 
 
 
@@ -55,14 +80,14 @@ SUB cpu_Clock
         cpu_regs.pc = cpu_regs.pc + 1
         cycles = instructions(opcode).cycles
 
-         execute_instruction additional_cycle1,additional_cycle2,opcode
+        execute_instruction additional_cycle1, additional_cycle2, opcode
 
 
         cycles = cycles + (additional_cycle1 AND additional_cycle2)
-          '_title str$(addr_abs)
+        '_title str$(addr_abs)
 
 
-         set_flag cpu_regs.flags.U,1
+        set_flag cpu_regs.flags.U, 1
 
 
 
@@ -76,7 +101,7 @@ END SUB
 
 
 
-FUNCTION complete        'tested-WORKS FINE
+FUNCTION complete 'tested-WORKS FINE
     'SHARED cycles AS _UNSIGNED _BYTE
 
     complete = cycles = 0
@@ -85,7 +110,7 @@ END FUNCTION
 
 
 
-SUB set_flag (f AS _UNSIGNED _BYTE, bool AS _UNSIGNED _BYTE)
+SUB set_flag (f AS _UNSIGNED INTEGER, bool AS _UNSIGNED INTEGER)
     'SHARED cpu_regs AS regs_6502
     IF bool THEN
         cpu_regs.status = cpu_regs.status OR f
@@ -100,13 +125,13 @@ END SUB
 
 
 
-FUNCTION get_flag (f AS _UNSIGNED _BYTE)
+FUNCTION get_flag~% (f AS _UNSIGNED INTEGER)
     'SHARED cpu_regs AS regs_6502
 
-    IF cpu_regs.status AND f THEN
-        get_flag = 1
+    IF (cpu_regs.status AND f) > 0 THEN
+        get_flag~% = 1
     ELSE
-        get_flag = 0
+        get_flag~% = 0
     END IF
 
 END FUNCTION
@@ -119,11 +144,10 @@ SUB fetch
     'SHARED fetched AS _UNSIGNED _BYTE
 
     'not finshed  WIP
-    IF NOT instructions(opcode).addrmode = addr_mode_IMP THEN
+    IF NOT (instructions(opcode).addrmode = addr_mode_IMP) THEN
         fetched = read_from_bus(addr_abs)
+
     END IF
-
-
 END SUB
 ''----------------------------------------------
 
@@ -177,20 +201,25 @@ SUB nmi ()
     'SHARED lo AS _UNSIGNED INTEGER
 
 
+    DIM hi AS _UNSIGNED INTEGER
+    DIM lo AS _UNSIGNED INTEGER
 
-    write_to_bus &H0100 + cpu_regs.stkp, _SHR(cpu_regs.pc, 8) AND &H00FF
+
+
+    write_to_bus &H0100~% + cpu_regs.stkp, _SHR(cpu_regs.pc, 8) AND &H00FF~%
     cpu_regs.stkp = cpu_regs.stkp - 1
-    write_to_bus &H0100 + cpu_regs.stkp, cpu_regs.pc AND &H00FF
+    write_to_bus &H0100~% + cpu_regs.stkp, cpu_regs.pc AND &H00FF~%
     cpu_regs.stkp = cpu_regs.stkp - 1
     set_flag cpu_regs.flags.B, 0
     set_flag cpu_regs.flags.U, 1
     set_flag cpu_regs.flags.I, 1
+    write_to_bus &H0100~% + cpu_regs.stkp, cpu_regs.status
     cpu_regs.stkp = cpu_regs.stkp - 1
     addr_abs = &HFFFA~%
     lo = read_from_bus(addr_abs + 0)
     hi = read_from_bus(addr_abs + 1)
     cpu_regs.pc = _SHL(hi, 8) OR lo
-
+    '_TITLE HEX$(cpu_regs.pc)
 
     cycles = 8
 
@@ -198,9 +227,9 @@ END SUB
 
 
 FUNCTION hex_range$ (num1 AS _UNSIGNED LONG, num2 AS _UNSIGNED _BYTE)
-       dim   num AS _UNSIGNED LONG
+    DIM num AS _UNSIGNED LONG
     s$ = STRING$(num2, "0")
-     num = num1
+    num = num1
     FOR i& = num2 - 1 TO 0 STEP -1
         'WHILE i& >= 0
         MID$(s$, i& + 1, 1) = MID$("0123456789ABCDEF", (num AND 15) + 1, 1)
@@ -212,17 +241,17 @@ FUNCTION hex_range$ (num1 AS _UNSIGNED LONG, num2 AS _UNSIGNED _BYTE)
     hex_range$ = s$
 
 END FUNCTION
-FUNCTION read_from_bus (addr AS _UNSIGNED INTEGER)
+FUNCTION read_from_bus~% (addr AS _UNSIGNED INTEGER)
 
-    read_from_bus = bus_cpuread(addr, 0)
+    read_from_bus~% = bus_cpuRead(addr, 0)
 
 END FUNCTION
 
 
 
 SUB write_to_bus (addr AS _UNSIGNED INTEGER, d AS _UNSIGNED _BYTE)
+    bus_cpuWrite  addr, d
 
-    bus_cpuwrite addr, d
 
 END SUB
 
@@ -403,8 +432,11 @@ END FUNCTION
 'uint8_t IZX();  uint8_t IZY();
 
 
-'$include: 'addressmodes_6502.bm'
-'$include: 'instructions_6502.bm'
+
+ '$include: 'addressmodes_6502.bm'
+ '$include: 'instructions_6502.bm'
+
+
 
 
 

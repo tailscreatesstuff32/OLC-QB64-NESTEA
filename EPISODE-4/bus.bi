@@ -12,10 +12,8 @@ DIM mema AS _MEM
 mema = _MEM(cpuRam())
 _MEMFILL mema, mema.OFFSET, mema.SIZE, &H00 AS _UNSIGNED INTEGER
 _MEMFREE mema
-DIM SHARED called1 AS _UNSIGNED LONG
+
 DIM SHARED controller(2) AS _UNSIGNED _BYTE
 DIM SHARED controller_state(2) AS _UNSIGNED _BYTE
-
-
 
 

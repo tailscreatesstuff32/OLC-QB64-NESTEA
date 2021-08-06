@@ -1,9 +1,10 @@
 
 
 
+$IF INCLUDED = UNDEFINED THEN
+    '$include: 'olc2c02.bi'
 
-
-
+$END IF
 
 
 FUNCTION GetScreen ()
@@ -17,7 +18,7 @@ END FUNCTION
 FUNCTION GetColourFromPaletteRam~& (pal AS _UNSIGNED _BYTE, pixel AS _UNSIGNED _BYTE)
 
 
-    GetColourFromPaletteRam~& = nes_pal1(ppuread(&H3F00~% + (_shl(pal,2)+ pixel), 0) and &H3F)
+    GetColourFromPaletteRam~& = nes_pal1(ppuRead(&H3F00~% + (_SHL(pal, 2) + pixel), 0) AND &H3F)
 
 
 END FUNCTION
@@ -25,35 +26,42 @@ END FUNCTION
 
 
 FUNCTION GetPatternTable~& (i AS _UNSIGNED _BYTE, pal AS _UNSIGNED _BYTE)
-     dim tile_lsb as _unsigned _byte
-     dim tile_msb as _unsigned _byte
-     dim pixel as _unsigned _byte
-     dim nOff as _unsigned integer
-     dim ntileY as _unsigned integer
-     dim ntileX as _unsigned integer
+    DIM tile_lsb AS _UNSIGNED _BYTE
+    DIM tile_msb AS _UNSIGNED _BYTE
+    DIM pixel AS _UNSIGNED _BYTE
+    DIM nOff AS _UNSIGNED INTEGER
+    DIM ntileY AS _UNSIGNED INTEGER
+    DIM ntileX AS _UNSIGNED INTEGER
 
-     dim row as _unsigned integer
-     dim col as _unsigned integer
+    DIM row AS _UNSIGNED INTEGER
+    DIM col AS _UNSIGNED INTEGER
 
 
 
     orig_scrn& = _DEST
     _DEST sprPatternTable(i)
 
-    FOR nTileY = 0 TO 16 - 1
+    FOR ntileY = 0 TO 16 - 1
 
 
-        FOR nTileX= 0 TO 16 - 1
-            nOff = nTileY * 256 + nTileX * 16
+        FOR ntileX = 0 TO 16 - 1
+
+            nOff = (ntileY * 256 + ntileX * 16)
+
 
             FOR row = 0 TO 8 - 1
 
-                tile_lsb = ppuRead(i * &H1000~% + nOff + row + 0, 0)
-                tile_msb = ppuRead(i * &H1000~% + nOff + row + 8, 0)
+                tile_lsb = ppuRead((i * &H1000~& + nOff + row + 0), 0)
+                tile_msb = ppuRead((i * &H1000~& + nOff + row + 8), 0)
 
                 FOR col = 0 TO 8 - 1
 
-                    pixel = (tile_lsb AND &H01) + (tile_msb AND &H01)
+                    pixel = _SHL(tile_msb AND &H01, 1) OR (tile_lsb AND &H01)
+
+                    '  pixel = (tile_lsb AND &H01) + (tile_msb AND &H01)
+
+
+
                     tile_lsb = _SHR(tile_lsb, 1)
                     tile_msb = _SHR(tile_msb, 1)
 
@@ -61,15 +69,16 @@ FUNCTION GetPatternTable~& (i AS _UNSIGNED _BYTE, pal AS _UNSIGNED _BYTE)
 
                     'TODO draw the pixel
 
-                    PSET (nTileX * 8 + (7 - col), nTileY * 8 + row), GetColourFromPaletteRam(pal, pixel)
+                    PSET ((ntileX * 8 + (7 - col)), (ntileY * 8 + row)), GetColourFromPaletteRam(pal, pixel)
 
 
                 NEXT col
 
-            NEXT row
-        NEXT nTileX
 
-    NEXT nTileY
+            NEXT row
+        NEXT ntileX
+
+    NEXT ntileY
     _DEST orig_scrn&
     GetPatternTable~& = sprPatternTable(i)
 
@@ -95,12 +104,10 @@ SUB ppu_cpuWrite (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
 
         CASE &H0000 ' control
             ppu_regs.control_reg = byte_data
-            '  set_ppu_control_flags ppu_regs
         CASE &H0001 'mask
-          ppu_regs.mask_reg = byte_data
-        '  set_ppu_mask_flags ppu_regs
+            ppu_regs.mask_reg = byte_data
         CASE &H0002 'status
-             ppu_regs.status_reg  =  byte_data
+            '    ppu_regs.status_reg = byte_data
         CASE &H0003 'OAM address
 
         CASE &H0004 'OAM data
@@ -109,20 +116,42 @@ SUB ppu_cpuWrite (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
 
         CASE &H0006 'PPU address
 
+            'IF address_latch = 0 THEN
+            '    ppu_address = (ppu_address AND &HFF~%) OR (_SHL(byte_data, 8))
+            '    address_latch = 1
+            'ELSE
+            '    ppu_address = (ppu_address AND &HFF00~%) OR byte_data
+            '    ppu_address = ppu_address + 1
+
+
+            '    address_latch = 0
+            'END IF
+
             IF address_latch = 0 THEN
-               ppu_address = (ppu_address AND &HFF) OR (_SHL(byte_data, 8))
-               address_latch = 1
+
+
+                '  tram_addr.reg = (uint16_t)((data & 0x3F) << 8) | (tram_addr.reg & 0x00FF);
+
+
+
+                ppu_address = _SHL((byte_data AND &H3F~%), 8) OR (ppu_address AND &H00FF~%)
+
+                address_latch = 1
             ELSE
-               ppu_address = (ppu_address AND &HFF00~%)   OR byte_data
-            ppu_address = ppu_address+1
-
-
+                ppu_address = (ppu_address AND &HFF00~%) OR byte_data
                 address_latch = 0
             END IF
-        CASE &H0007 'PPU data
-       ppuWrite ppu_address-1 , byte_data
 
-            ppu_address = ppu_address+1
+
+
+        CASE &H0007 'PPU data
+
+
+            ppuWrite ppu_address, byte_data
+
+            ppu_address = ppu_address + 1
+
+
 
 
     END SELECT
@@ -132,72 +161,78 @@ SUB ppu_cpuWrite (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
 END SUB
 
 
-FUNCTION ppu_cpuRead~%% (addr AS _UNSIGNED INTEGER, bReadOnly AS _UNSIGNED _BYTE)
+FUNCTION ppu_cpuRead~% (addr AS _UNSIGNED INTEGER, bReadOnly AS _UNSIGNED _BYTE)
 
     DIM data_ppu AS _UNSIGNED _BYTE
+    IF bReadOnly THEN
+        SELECT CASE addr
 
-    'SELECT CASE addr
-
-    '    CASE &H0000 ' Control
-    '     data_ppu = ppu_regs.control_reg
-
-
-    ''    CASE &H0001 ' Mask
-    '        data_ppu = ppu_regs.mask_reg
-
-    ''    CASE &H0002 ' Status
-
-    '      data_ppu = ppu_regs.status_reg
+            CASE &H0000 ' Control
+                data_ppu = ppu_regs.control_reg
 
 
-    '    CASE &H0003 ' OAM Address
+            CASE &H0001 ' Mask
+                data_ppu = ppu_regs.mask_reg
 
-    '    CASE &H0004 ' OAM Data
+            CASE &H0002 ' Status
 
-    '    CASE &H0005 ' Scroll
-
-    '    CASE &H0006 ' PPU Address
-
-    '    CASE &H0007 ' PPU Data
-    'END SELECT
+                data_ppu = ppu_regs.status_reg
 
 
-    SELECT CASE addr
+            CASE &H0003 ' OAM Address
 
-        CASE &H0000 ' control
+            CASE &H0004 ' OAM Data
 
-        CASE &H0001 'mask
+            CASE &H0005 ' Scroll
 
-        CASE &H0002 'status
-            ppu_regs.flags_status.vertical_blank = 1
-            set_ppu_status_flags ppu_regs
-            data_ppu = (ppu_regs.status_reg AND &HE0~%) OR (ppu_data_buffer AND &H1F~%)
+            CASE &H0006 ' PPU Address
 
-            ppu_regs.flags_status.vertical_blank = 0
-            set_ppu_status_flags ppu_regs
-            address_latch = 0
+            CASE &H0007 ' PPU Data
+        END SELECT
 
-        CASE &H0003 'OAM address
+    ELSE
+        SELECT CASE addr
 
-        CASE &H0004 'OAM data
+            CASE &H0000 ' control
 
-        CASE &H0005 'Scroll
+            CASE &H0001 'mask
 
-        CASE &H0006 'PPU address
+            CASE &H0002 'status
 
-        CASE &H0007 'PPU data
-            data_ppu = ppu_data_buffer
-          ppu_data_buffer = ppuRead(ppu_address, 0)
+                '    ppu_regs.flags_status.vertical_blank = 1
+                '  set_ppu_status_flags ppu_regs
+                '  set_ppu_status_flags ppu_regs
+                '    set_ppu_status_flags ppu_regs
+                set_ppu_status_flags ppu_regs
+                data_ppu = (ppu_regs.status_reg AND &HE0~%) OR (ppu_data_buffer AND &H1F~%)
 
-           IF ppu_address > &H3F00~% THEN data_ppu = ppu_data_buffer
+                ppu_regs.flags_status.vertical_blank = 0
+                set_ppu_status_flags ppu_regs
+                address_latch = 0
 
-            ppu_address = ppu_address+1
+            CASE &H0003 'OAM address
 
-        1
-    END SELECT
+            CASE &H0004 'OAM data
+
+            CASE &H0005 'Scroll
+
+            CASE &H0006 'PPU address
+
+            CASE &H0007 'PPU data
+                data_ppu = ppu_data_buffer
+
+                ppu_data_buffer = ppuRead(ppu_address, 0)
+                '    _TITLE HEX$(ppu_address)
+                IF ppu_address >= &H3F00~% THEN data_ppu = ppu_data_buffer
+                ppu_address = ppu_address + 1
 
 
-    ppu_cpuRead~%% = data_ppu
+
+
+        END SELECT
+
+    END IF
+    ppu_cpuRead~% = data_ppu
 
 END FUNCTION
 
@@ -210,27 +245,29 @@ END SUB
 
 SUB ppuWrite (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
 
-    addr = addr AND &H3FFF~%
+    DIM temp_addr AS _UNSIGNED INTEGER
+    temp_addr = addr
+    temp_addr = temp_addr AND &H3FFF~%
 
-   IF cart_ppuWrite(addr, byte_data) THEN
+    IF cart_ppuWrite(temp_addr, byte_data) THEN
 
-    elseIF addr >= &H0000~% AND addr <= &H1FFF~% THEN
+    ELSEIF temp_addr >= &H0000~% AND temp_addr <= &H1FFF~% THEN
 
-    '  tblPattern(_SHR(addr AND &H1000~%, 12), addr AND &H0FFF~%) = byte_data
-
-
-    ELSEIF addr >= &H2000~% AND addr <= &H3EFF~% THEN
-
+        '   tblPattern(_SHR(temp_addr AND &H1000~%, 12), temp_addr AND &H0FFF~%) = byte_data
 
 
-    ELSEIF addr >= &H3F00~%  AND addr <= &H3FFF THEN
+    ELSEIF temp_addr >= &H2000~% AND temp_addr <= &H3EFF~% THEN
 
-        addr = addr AND &H1F~%
-        IF addr = &H0010~% THEN addr = &H0000~%
-        IF addr = &H0014~% THEN addr = &H0004~%
-        IF addr = &H0018~% THEN addr = &H0008~%
-        IF addr = &H001C~% THEN addr = &H000C~%
-     tblPalette(addr) = byte_data
+
+
+    ELSEIF temp_addr >= &H3F00~% AND temp_addr <= &H3FFF~% THEN
+
+        temp_addr = temp_addr AND &H1F~%
+        IF temp_addr = &H0010~% THEN temp_addr = &H0000~%
+        IF temp_addr = &H0014~% THEN temp_addr = &H0004~%
+        IF temp_addr = &H0018~% THEN temp_addr = &H0008~%
+        IF temp_addr = &H001C~% THEN temp_addr = &H000C~%
+        tblPalette(temp_addr) = byte_data
 
 
     END IF
@@ -239,77 +276,229 @@ SUB ppuWrite (addr AS _UNSIGNED INTEGER, byte_data AS _UNSIGNED _BYTE)
 END SUB
 
 
-FUNCTION ppuRead~%% (addr AS _UNSIGNED INTEGER, bReadOnly AS _UNSIGNED _BYTE)
-          dim data_ppu as _unsigned _byte
-    addr = addr AND &H3FFF~%
+FUNCTION ppuRead~% (addr AS _UNSIGNED INTEGER, bReadOnly AS _UNSIGNED _BYTE)
+    DIM data_ppu AS _UNSIGNED _BYTE
+    DIM temp_addr AS _UNSIGNED INTEGER
+    bReadOnly = 0
+    data_ppu = 0
+    temp_addr = addr
 
-   IF cart_ppuRead(addr, data_ppu) THEN
 
-    elseIF addr >= &H0000~% AND addr <= &H1FFF~% THEN
-     '   data_ppu = tblPattern(_SHR(addr AND &H1000~%, 12), addr AND &H0FFF~%)
+    temp_addr = temp_addr AND &H3FFF~%
 
-    ELSEIF addr >= &H2000~% AND addr <= &H3EFF~% THEN
 
-    ELSEIF addr >= &H3F00~% AND addr <= &H3FFF~% THEN
+    IF cart_ppuRead(temp_addr, data_ppu) THEN
 
-        addr = addr AND &H1F~%
-        IF addr = &H0010~% THEN addr = &H0000~%
-        IF addr = &H0014~% THEN addr = &H0004~%
-        IF addr = &H0018~% THEN addr = &H0008~%
-        IF addr = &H001C~% THEN addr = &H000C~%
-       ' tblPalette(0)=32
-        data_ppu = tblPalette(addr) ' and &H3F
+    ELSEIF temp_addr >= &H0000~% AND temp_addr <= &H1FFF~% THEN
+        '   data_ppu = tblPattern(_SHR(temp_addr AND &H1000~%, 12), temp_addr AND &H0FFF~%)
+
+    ELSEIF temp_addr >= &H2000~% AND temp_addr <= &H3EFF~% THEN
+        '  temp_addr = temp_addr AND &H0FFF~%
+
+    ELSEIF temp_addr >= &H3F00~% AND temp_addr <= &H3FFF~% THEN
+
+        temp_addr = temp_addr AND &H1F~%
+        IF temp_addr = &H0010~% THEN temp_addr = &H0000~%
+        IF temp_addr = &H0014~% THEN temp_addr = &H0004~%
+        IF temp_addr = &H0018~% THEN temp_addr = &H0008~%
+        IF temp_addr = &H001C~% THEN temp_addr = &H000C~%
+        ' tblPalette(0)=32
+        data_ppu = tblPalette(temp_addr) ' and &H3F
 
         ' locate 0,0
-      '   print hex$(data_ppu )
+        '   print hex$(data_ppu )
         ' end
 
     END IF
 
 
-    ppuRead~%% = data_ppu
+    ppuRead~% = data_ppu
 
 END FUNCTION
+
+
+SUB ppu_reset ()
+
+    DIM ppu_def_state AS PPUREGS
+    cycle = 0
+    scanline = 0
+    ppu_regs = ppu_def_state
+    ppu_address = 0
+    address_latch = 0
+
+
+    FOR i = 0 TO 32 - 1
+
+        tblPalette(i) = 0
+    NEXT i
+
+    tblPalette(0) = 32
+
+
+END SUB
+
+
+
+
 
 SUB PPU_clock ()
     orig_scrn& = _DEST
     _DEST nes_scrn
+
+    IF scanline = -1 AND cycle = 1 THEN
+
+
+        ppu_regs.flags_status.vertical_blank = 0
+
+
+    END IF
+
+    set_ppu_status_flags ppu_regs
+
+
+    IF scanline = 241 AND cycle = 1 THEN
+
+        ppu_regs.flags_control.enable_nmi = get_ppu_control_flags(ppu_regs)
+        IF ppu_regs.flags_control.enable_nmi = 1 THEN
+            ppu_nmi = 1
+        END IF
+
+
+        ppu_regs.flags_status.vertical_blank = 1
+
+
+    END IF
+    set_ppu_status_flags ppu_regs
+
+
+    '  set_ppu_status_flags ppu_regs
+
+
     'add screen noise
 
-    IF Rand(0, 1) = 0 THEN
-        col1& = nes_pal1(&H3F&)
+    'IF Rand(0, 1) = 0 THEN
+    '    col1& = nes_pal1(&H3F&)
 
-    ELSE
+    'ELSE
 
-        col1& = nes_pal1(&H30&)
-    END IF
-    'PSET (cycle - 1, scanline), col1&
+    '    col1& = nes_pal1(&H30&)
+    'END IF
+
+    PSET (cycle - 1, scanline), col1
+
     '    'cycle = 341
     '    'scanline = 261
 
+
     cycle = cycle + 1
-    IF cycle >= 5 THEN
+    IF cycle >= 341 THEN
         cycle = 0
 
         scanline = scanline + 1
-        IF scanline >= 5 THEN
+        IF scanline >= 261 THEN
+            col1 = nes_pal1(RND * 20)
             framecomplete = -1
             scanline = -1
 
         END IF
     END IF
+
+
     _DEST orig_scrn&
 
 END SUB
 
 
 
-sub set_ppu_status_flags(regs as PPUREGS )
+SUB set_ppu_status_flags (regs AS PPUREGS)
 
-         regs.status_reg = _shl(regs.flags_status.unused,4) or _shl(regs.flags_status.sprite_overflow,5) or  _shl(regss.flags_status.sprite_zero_hit,6) or  _shl(regs.flags_status.vertical_blank,7)
-       '  _title str$(regs.status_reg)
+    regs.status_reg = _SHL(regs.flags_status.unused, 4) OR _SHL(regs.flags_status.sprite_overflow, 5) OR _SHL(regss.flags_status.sprite_zero_hit, 6) OR _SHL(regs.flags_status.vertical_blank, 7)
 
-end sub
+
+END SUB
+
+
+SUB get_ppu_status_flags (regs AS PPUREGS)
+
+    regs.status_reg = _SHL(regs.flags_status.unused, 4) OR _SHL(regs.flags_status.sprite_overflow, 5) OR _SHL(regss.flags_status.sprite_zero_hit, 6) OR _SHL(regs.flags_status.vertical_blank, 7)
+
+
+END SUB
+
+
+
+FUNCTION get_ppu_control_flags (regs AS PPUREGS)
+    DIM ENABLE_NMI AS _BYTE
+    ENABLE_NMI = &H80~%
+
+
+    IF regs.control_reg AND ENABLE_NMI THEN
+
+
+        get_ppu_control_flags = 1
+    ELSE
+        get_ppu_control_flags = 0
+    END IF
+
+END FUNCTION
+
+
+
+
+
+
+
+
+
+
+
+
+'FUNCTION get_ppu_status_flags (regs AS PPUREGS)
+
+'    if
+
+
+'    get_ppu_status_flags = 1
+
+'    get_ppu_status_flags = 1
+
+
+'END FUNCTION
+
+
+
+
+
+
+
+
+
+'SUB set_flag (f AS _UNSIGNED _BYTE, bool AS _UNSIGNED _BYTE)
+'    'SHARED cpu_regs AS regs_6502
+'    IF bool THEN
+'        cpu_regs.status = cpu_regs.status OR f
+'    ELSE
+'        cpu_regs.status = cpu_regs.status AND NOT f
+
+
+'    END IF
+
+
+'END SUB
+
+
+
+'FUNCTION get_flag (f AS _UNSIGNED _BYTE)
+'    'SHARED cpu_regs AS regs_6502
+
+'    IF cpu_regs.status AND f THEN
+'        get_flag = 1
+'    ELSE
+'        get_flag = 0
+'    END IF
+
+'END FUNCTION
+
 
 'sub set_ppu_control_flags(regs as PPUREGS )
 

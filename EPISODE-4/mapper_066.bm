@@ -1,0 +1,81 @@
+
+
+
+
+
+
+
+
+
+
+REM '$include: 'mapper.bm'
+
+
+
+SUB mapper_066 (prg_banks AS _UNSIGNED _BYTE, chr_banks AS _UNSIGNED _BYTE)
+
+    Mapper prg_banks, chr_banks,66
+
+END SUB
+
+FUNCTION cpuMap66Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+    IF (addr >= &H8000~% AND addr <= &HFFFF~%) THEN
+
+        mapped_addr = nPRGBankSelect * &H8000 + (addr AND &H7FFF)
+        cpuMap66Read = 1
+        EXIT FUNCTION
+    ELSE
+        cpuMap66Read = 0
+        EXIT FUNCTION
+    END IF
+    cpuMap66Read = 0
+
+END FUNCTION
+
+
+FUNCTION cpuMap66Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG, byte_data AS _UNSIGNED _BYTE)
+
+    IF (addr >= &H8000~% AND addr <= &HFFFF~%) THEN
+
+        nCHRBankSelect = byte_data AND &H03
+        nPRGBankSelect = _SHR((byte_data AND &H30), 4)
+        ' Mapper has handled write, but do not update ROMs
+    END IF
+    cpuMap66Write = 0
+
+
+
+
+END FUNCTION
+
+
+FUNCTION ppuMap66Read (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+    IF (addr < &H2000~%) THEN
+
+        mapped_addr = nchrBankSelect * &H2000 + addr
+        ppuMap66Read = 1
+        EXIT FUNCTION
+    ELSE
+        ppuMap66Read = 0
+        EXIT FUNCTION
+    END IF
+    ppuMap66Read = 0
+
+
+END FUNCTION
+
+
+FUNCTION ppuMap66Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG)
+
+
+    ppuMap66Write = 0
+END FUNCTION
+
+SUB Mapper_066_Reset ()
+
+    nPRGBankSelect = 0
+    nCHRBankSelect = 0
+
+END SUB
+

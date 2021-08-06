@@ -1,0 +1,106 @@
+FUNCTION ComDlgFileName$ (Title AS STRING, InitialDir AS STRING, Filter AS STRING, Flags AS _UNSIGNED LONG)
+    TYPE OPENFILENAME
+        AS _UNSIGNED LONG lStructSize
+        $IF 64BIT THEN
+            AS STRING * 4 padding
+        $END IF
+        AS _OFFSET hwndOwner, hInstance, lpstrFilter, lpstrCustomFilter
+        AS _UNSIGNED LONG nMaxCustFilter, nFilterIndex
+        AS _OFFSET lpstrFile
+        AS _UNSIGNED LONG nMaxFile
+        $IF 64BIT THEN
+            AS STRING * 4 padding2
+        $END IF
+        AS _OFFSET lpstrFileTitle
+        AS _UNSIGNED LONG nMaxFileTitle
+        $IF 64BIT THEN
+            AS STRING * 4 padding3
+        $END IF
+        AS _OFFSET lpstrInitialDir, lpstrTitle
+        AS _UNSIGNED LONG Flags
+        AS INTEGER nFileOffset, nFileExtension
+        AS _OFFSET lpstrDefExt, lCustData, lpfnHook, lpTemplateName, pvReserved
+        AS _UNSIGNED LONG dwReserved, FlagsEx
+    END TYPE
+
+    DECLARE DYNAMIC LIBRARY "Comdlg32"
+        SUB GetOpenFileName ALIAS "GetOpenFileNameA" (BYVAL ofn AS _OFFSET)
+        SUB GetSaveFileName ALIAS "GetSaveFileNameA" (BYVAL ofn AS _OFFSET)
+    END DECLARE
+
+    $IF 64BIT THEN
+        DECLARE CUSTOMTYPE LIBRARY ".\internal\c\c_compiler\x86_64-w64-mingw32\include\tchar"
+            FUNCTION tcslen%& ALIAS "_tcslen" (BYVAL str AS _OFFSET)
+        END DECLARE
+    $ELSE
+        Declare CustomType Library ".\internal\c\c_compiler\i686-w64-mingw32\include\tchar"
+        Function tcslen%& Alias "_tcslen" (ByVal str As _Offset)
+        End Declare
+    $END IF
+
+    DECLARE LIBRARY
+        FUNCTION GetLastError~& ()
+    END DECLARE
+
+    DIM AS OPENFILENAME ofn
+    Title = Title + CHR$(0)
+    InitialDir = InitialDir + CHR$(0)
+    DO
+        MID$(Filter, INSTR(Filter, "|")) = CHR$(0)
+    LOOP WHILE INSTR(Filter, "|")
+    Filter = Filter + CHR$(0) + CHR$(0)
+    DIM AS STRING * 2048 oFile
+    ofn.lStructSize = LEN(ofn)
+    ofn.hwndOwner = _WINDOWHANDLE
+    ofn.lpstrFilter = _OFFSET(Filter)
+    ofn.nFilterIndex = 1
+    ofn.lpstrFile = _OFFSET(oFile)
+    ofn.nMaxFile = LEN(oFile)
+    ofn.lpstrFileTitle = ofn.lpstrFile
+    ofn.nMaxFileTitle = ofn.nMaxFile
+    ofn.lpstrInitialDir = _OFFSET(InitialDir)
+    ofn.lpstrTitle = _OFFSET(Title)
+    IF OPEN_DIALOG AND Flags OR (SAVE_DIALOG AND Flags) = 0 THEN
+        IF OFN_ALLOWMULTISELECT AND Flags THEN Flags = Flags OR OFN_EXPLORER
+        ofn.Flags = Flags
+        GetOpenFileName _OFFSET(ofn)
+        IF GetLastError = 0 THEN
+            IF OFN_ALLOWMULTISELECT AND Flags THEN
+                DIM AS _OFFSET tmp: tmp = ofn.lpstrFile + ofn.nFileOffset
+                DIM AS _MEM pFiles: pFiles = _MEM(tmp, tcslen(tmp))
+                DIM AS STRING file, outfiles, directory
+                DIM AS _MEM dir: dir = _MEM(ofn.lpstrFile, tcslen(ofn.lpstrFile))
+                directory = SPACE$(tcslen(ofn.lpstrFile))
+                _MEMGET dir, dir.OFFSET, directory
+                _MEMFREE dir
+                DIM AS LONG i
+                WHILE tcslen(tmp)
+                    file = SPACE$(tcslen(tmp))
+                    _MEMGET pFiles, pFiles.OFFSET, file
+                    SELECT CASE i
+                        CASE 0
+                            outfiles = directory + "\" + file
+                        CASE ELSE
+                            outfiles = outfiles + "|" + directory + "\" + file
+                    END SELECT
+                    i = i + 1
+                    tmp = tmp + (tcslen(tmp) + 1)
+                    pFiles = _MEM(tmp, tcslen(tmp))
+                WEND
+                _MEMFREE pFiles
+                IF i = 1 THEN
+                    file = directory
+                    ComDlgFileName = file
+                ELSE
+                    ComDlgFileName = outfiles
+                END IF
+            ELSE
+                ComDlgFileName = MID$(oFile, 1, INSTR(oFile, CHR$(0)) - 1)
+            END IF
+        END IF
+    ELSEIF SAVE_DIALOG AND Flags THEN
+        ofn.Flags = Flags
+        GetSaveFileName _OFFSET(ofn)
+        ComDlgFileName = MID$(oFile, 1, INSTR(oFile, CHR$(0)) - 1)
+    END IF
+END FUNCTION
