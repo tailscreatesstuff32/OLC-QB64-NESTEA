@@ -248,7 +248,7 @@ SUB nes_init ()
 
     DIM AS STRING cart
 
-     app_menu (_WINDOWHANDLE)
+    app_menu (_WINDOWHANDLE)
 
     _PUTIMAGE ((_WIDTH(displayarea) / 2) - 400, 0)-((_WIDTH(displayarea) / 2) + 400, _HEIGHT(displayarea)), nestea_logo, 0
     '  _DISPLAY
