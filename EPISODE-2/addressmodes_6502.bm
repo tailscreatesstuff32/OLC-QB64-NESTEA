@@ -11,6 +11,8 @@ FUNCTION addr_IMM~%
 
     addr_abs = cpu_regs.pc
     cpu_regs.pc = cpu_regs.pc + 1
+
+
     addr_IMM~% = 0
 
 END FUNCTION
@@ -20,7 +22,7 @@ FUNCTION addr_ZPO~%
     addr_abs = read_from_bus(cpu_regs.pc)
     cpu_regs.pc = cpu_regs.pc + 1
 
-    addr_abs = addr_abs AND &H00FF
+    addr_abs = addr_abs AND &H00FF~%
     addr_ZPO~% = 0
 
 END FUNCTION
@@ -29,7 +31,7 @@ FUNCTION add_ZPX~%
 
     addr_abs = (read_from_bus(cpu_regs.pc) + cpu_regs.x_reg)
     cpu_regs.pc = cpu_regs.pc + 1
-    addr_abs = addr_abs AND &H00FF
+    addr_abs = addr_abs AND &H00FF~%
     add_ZPX~% = 0
 END FUNCTION
 
@@ -37,7 +39,7 @@ FUNCTION add_ZPY~%
 
     addr_abs = (read_from_bus(cpu_regs.pc) + cpu_regs.y_reg)
     cpu_regs.pc = cpu_regs.pc + 1
-    addr_abs = addr_abs AND &H00FF
+    addr_abs = addr_abs AND &H00FF~%
     add_ZPY~% = 0
 END FUNCTION
 
@@ -45,8 +47,8 @@ FUNCTION add_REL~%
 
     addr_rel = read_from_bus(cpu_regs.pc)
     cpu_regs.pc = cpu_regs.pc + 1
-    IF addr_rel AND &H80 THEN
-        addr_rel = addr_rel OR &HFF00
+    IF addr_rel AND &H80~% THEN
+        addr_rel = addr_rel OR &HFF00~%
 
     END IF
     add_REL~% = 0
@@ -88,16 +90,16 @@ FUNCTION add_ABX~%
     addr_abs = addr_abs + cpu_regs.x_reg
 
 
-    IF (addr_abs AND &HFF00) <> _SHL(hi, 8) THEN
+    IF (addr_abs AND &HFF00~%) <> _SHL(hi, 8) THEN
 
 
         add_ABX~% = 1
-        '  EXIT FUNCTION
+
     ELSE
         add_ABX~% = 0
     END IF
 
-    'add_ABX~% = 0
+
 END FUNCTION
 
 FUNCTION add_ABY~%
@@ -118,15 +120,17 @@ FUNCTION add_ABY~%
     addr_abs = addr_abs + cpu_regs.y_reg
 
 
-    IF (addr_abs AND &HFF00) <> _SHL(hi, 8) THEN
+    IF (addr_abs AND &HFF00~%) <> _SHL(hi, 8) THEN
 
 
         add_ABY~% = 1
-        EXIT FUNCTION
-
+    ELSE
+        add_ABY~% = 0
     END IF
-    add_ABY~% = 0
+
 END FUNCTION
+
+
 
 FUNCTION add_IND~%
 
@@ -135,18 +139,19 @@ FUNCTION add_IND~%
     DIM ptr AS _UNSIGNED INTEGER
     ptr_lo = read_from_bus(cpu_regs.pc)
     cpu_regs.pc = cpu_regs.pc + 1
+
+
     ptr_hi = read_from_bus(cpu_regs.pc)
     cpu_regs.pc = cpu_regs.pc + 1
 
     ptr = _SHL(ptr_hi, 8) OR ptr_lo
 
-    IF ptr_lo = &H00FF THEN
-        addr_abs = (read_from_bus(_SHL(ptr AND &HFF00, 8) OR read_from_bus(ptr + 0)))
-    ELSE
-        addr_abs = (read_from_bus(_SHL(ptr + &HFF00, 8) OR read_from_bus(ptr + 0)))
+    IF ptr_lo = &H00FF~% THEN '// Simulate page boundary hardware bug
+        addr_abs = (_SHL(read_from_bus(ptr AND &HFF00~%), 8) OR read_from_bus(ptr + 0))
+
+    ELSE '  // Behave normally
+        addr_abs = (_SHL(read_from_bus(ptr + 1), 8) OR read_from_bus(ptr + 0))
     END IF
-
-
 
     add_IND~% = 0
 
@@ -164,9 +169,9 @@ FUNCTION add_IZX~%
 
     cpu_regs.pc = cpu_regs.pc + 1
 
-    lo = read_from_bus(t + cpu_regs.x_reg) AND &H00FF
+    lo = read_from_bus((t + cpu_regs.x_reg) AND &H00FF~%)
 
-    hi = read_from_bus(t + cpu_regs.x_reg + 1) AND &H00FF
+    hi = read_from_bus((t + cpu_regs.x_reg + 1) AND &H00FF~%)
 
 
     addr_abs = _SHL(hi, 8) OR lo
@@ -181,24 +186,23 @@ FUNCTION add_IZY~%
     DIM t AS _UNSIGNED INTEGER
 
     t = read_from_bus(cpu_regs.pc)
-
-
     cpu_regs.pc = cpu_regs.pc + 1
+    lo = read_from_bus(t AND &H00FF~%)
 
-    lo = read_from_bus(t AND &H00FF)
-
-    hi = read_from_bus(t + 1) AND &H00FF
+    hi = read_from_bus((t + 1) AND &H00FF~%)
 
     addr_abs = _SHL(hi, 8) OR lo
     addr_abs = addr_abs + cpu_regs.y_reg
 
-    IF ((addr_abs AND &HFF00) <> _SHL(hi, 8)) THEN
+    IF ((addr_abs AND &HFF00~%) <> _SHL(hi, 8)) THEN
         add_IZY~% = 1
+    ELSE
 
-        EXIT FUNCTION
+        add_IZY~% = 0
+
+
 
     END IF
-    add_IZY~% = 0
 
 
 END FUNCTION
