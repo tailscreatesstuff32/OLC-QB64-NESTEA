@@ -114,8 +114,8 @@ FUNCTION cpuMap04Write (addr AS _UNSIGNED INTEGER, mapped_addr AS _UNSIGNED LONG
                 pCHRBank(1) = pRegister(3) * &H0400~%
                 pCHRBank(2) = pRegister(4) * &H0400~%
                 pCHRBank(3) = pRegister(5) * &H0400~%
-               pCHRBank(4) = (pRegister(0) AND &HFE~%) * &H0400~%
-               pCHRBank(5) = pRegister(0) * &H0400~% + &H0400~%
+                pCHRBank(4) = (pRegister(0) AND &HFE~%) * &H0400~%
+                pCHRBank(5) = pRegister(0) * &H0400~% + &H0400~%
                 pCHRBank(6) = (pRegister(1) AND &HFE~%) * &H0400~%
                 pCHRBank(7) = pRegister(1) * &H0400~% + &H0400~%
 
