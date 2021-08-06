@@ -1,4 +1,4 @@
-  DIM SHARED keys(255) AS _BYTE
+DIM SHARED keys(255) AS _BYTE
 
 
 '$include: 'bus.bi'
@@ -17,7 +17,7 @@ DO
 
 LOOP UNTIL keypress(27)
 
-DIM SHARED mapAsm(65535) AS STRING
+DIM SHARED mapAsm(65536) AS STRING
 
 
 

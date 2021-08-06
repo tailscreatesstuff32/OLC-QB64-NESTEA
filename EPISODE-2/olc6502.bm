@@ -1,16 +1,30 @@
 
 SUB reset_6502 ()
+    'SHARED cpu_regs AS regs_6502
+    'SHARED addr_abs AS _UNSIGNED INTEGER
+    'SHARED addr_rel AS _UNSIGNED INTEGER
+    'SHARED fetched AS _UNSIGNED _BYTE
+    'SHARED cycles AS _UNSIGNED _BYTE
+    'SHARED hi AS _UNSIGNED INTEGER
+    'SHARED lo AS _UNSIGNED INTEGER
 
-    addr_abs = &HFFFC
+
+
+
+    addr_abs = &HFFFC~%
     lo = read_from_bus(addr_abs + 0)
     hi = read_from_bus(addr_abs + 1)
 
     cpu_regs.pc = _SHL(hi, 8) OR lo
-    cpu_regs.a_reg = 0
-    cpu_regs.x_reg = 0
+    cpu_regs.a_reg = &H00
+    cpu_regs.x_reg = &H00
+    cpu_regs.y_reg = &H00
     cpu_regs.stkp = &HFD
 
     cpu_regs.status = &H00 OR cpu_regs.flags.U
+
+
+
 
     addr_rel = &H0000
     addr_abs = &H0000
@@ -22,6 +36,9 @@ END SUB
 
 
 SUB cpu_Clock
+    'SHARED opcode AS _UNSIGNED _BYTE
+    'SHARED cpu_regs AS regs_6502
+    'SHARED cycles AS _UNSIGNED _BYTE
 
 
     DIM additional_cycle1 AS _UNSIGNED _BYTE
@@ -60,7 +77,7 @@ END SUB
 
 
 FUNCTION complete        'tested-WORKS FINE
-
+    'SHARED cycles AS _UNSIGNED _BYTE
 
     complete = cycles = 0
 
@@ -69,7 +86,7 @@ END FUNCTION
 
 
 SUB set_flag (f AS _UNSIGNED _BYTE, bool AS _UNSIGNED _BYTE)
-
+    'SHARED cpu_regs AS regs_6502
     IF bool THEN
         cpu_regs.status = cpu_regs.status OR f
     ELSE
@@ -84,7 +101,7 @@ END SUB
 
 
 FUNCTION get_flag (f AS _UNSIGNED _BYTE)
-
+    'SHARED cpu_regs AS regs_6502
 
     IF cpu_regs.status AND f THEN
         get_flag = 1
@@ -96,6 +113,10 @@ END FUNCTION
 
 '----------------------------------------------  'tested-WORKS FINE
 SUB fetch
+    'SHARED opcode AS _UNSIGNED _BYTE
+    'SHARED addr_abs AS _UNSIGNED INTEGER
+    'SHARED addr_rel AS _UNSIGNED INTEGER
+    'SHARED fetched AS _UNSIGNED _BYTE
 
     'not finshed  WIP
     IF NOT instructions(opcode).addrmode = addr_mode_IMP THEN
@@ -107,7 +128,17 @@ END SUB
 ''----------------------------------------------
 
 
+
 SUB irq ()
+    'SHARED cpu_regs AS regs_6502
+    'SHARED addr_abs AS _UNSIGNED INTEGER
+    'SHARED addr_rel AS _UNSIGNED INTEGER
+    'SHARED fetched AS _UNSIGNED _BYTE
+    'SHARED cycles AS _UNSIGNED _BYTE
+    'SHARED hi AS _UNSIGNED INTEGER
+    'SHARED lo AS _UNSIGNED INTEGER
+
+
 
     DIM hi AS _UNSIGNED INTEGER
     DIM lo AS _UNSIGNED INTEGER
@@ -124,7 +155,7 @@ SUB irq ()
         set_flag cpu_regs.flags.I, 1
         write_to_bus &H0100 + cpu_regs.stkp, cpu_regs.status
         cpu_regs.stkp = cpu_regs.stkp - 1
-        addr_abs = &HFFFE
+        addr_abs = &HFFFE~%
         lo = read_from_bus(addr_abs + 0)
         hi = read_from_bus(addr_abs + 1)
         cpu_regs.pc = _SHL(hi, 8) OR lo
@@ -138,18 +169,30 @@ END SUB
 
 
 SUB nmi ()
+    'SHARED cpu_regs AS regs_6502
+    'SHARED addr_abs AS _UNSIGNED INTEGER
+    'SHARED addr_rel AS _UNSIGNED INTEGER
+    'SHARED fetched AS _UNSIGNED _BYTE
+    'SHARED cycles AS _UNSIGNED _BYTE
+    'SHARED hi AS _UNSIGNED INTEGER
+    'SHARED lo AS _UNSIGNED INTEGER
+
+
+    DIM hi AS _UNSIGNED INTEGER
+    DIM lo AS _UNSIGNED INTEGER
 
 
 
-    write_to_bus &H0100 + cpu_regs.stkp, _SHR(cpu_regs.pc, 8) AND &H00FF
+    write_to_bus &H0100~% + cpu_regs.stkp, _SHR(cpu_regs.pc, 8) AND &H00FF~%
     cpu_regs.stkp = cpu_regs.stkp - 1
-    write_to_bus &H0100 + cpu_regs.stkp, cpu_regs.pc AND &H00FF
+    write_to_bus &H0100~% + cpu_regs.stkp, cpu_regs.pc AND &H00FF~%
     cpu_regs.stkp = cpu_regs.stkp - 1
     set_flag cpu_regs.flags.B, 0
     set_flag cpu_regs.flags.U, 1
     set_flag cpu_regs.flags.I, 1
+    write_to_bus &H0100~% + cpu_regs.stkp, cpu_regs.status
     cpu_regs.stkp = cpu_regs.stkp - 1
-    addr_abs = &HFFFA
+    addr_abs = &HFFFA~%
     lo = read_from_bus(addr_abs + 0)
     hi = read_from_bus(addr_abs + 1)
     cpu_regs.pc = _SHL(hi, 8) OR lo
@@ -203,110 +246,104 @@ FUNCTION Bin_range$ (num1 AS _UNSIGNED LONG, num2 AS _UNSIGNED _BYTE)
     Bin_range$ = s$
 END FUNCTION
 
-sub  disassemble(maparray() as string,nStart as _unsigned integer,nStop as _unsigned integer)
-       dim addr as _unsigned long
-       dim value as _unsigned _byte
-       dim lo as _unsigned _byte
-       dim hi as _unsigned _byte
-       dim maplines(0) as string
-       dim op as _unsigned _byte
+SUB disassemble (maparray() AS STRING, nStart AS _UNSIGNED INTEGER, nStop AS _UNSIGNED INTEGER)
+    DIM addr AS _UNSIGNED LONG
+    DIM value AS _UNSIGNED _BYTE
+    DIM value_sgn AS _BYTE
+    DIM lo AS _UNSIGNED _BYTE
+    DIM hi AS _UNSIGNED _BYTE
+    DIM op AS _UNSIGNED _BYTE
 
-DIM line_addr AS _UNSIGNED INTEGER
-DIM  sInst AS STRING
+    DIM line_addr AS _UNSIGNED INTEGER
+    DIM sInst AS STRING
 
+    addr = nStart
+    WHILE addr <= nStop
 
-          redim maplines(65535) as string
+        line_addr = addr
 
-           addr = nStart
-       while addr <= nStop
+        sInst = "$" + hex_range(addr, 4) + ": "
+        op = bus_read(addr, 1)
 
-               line_addr = addr
-
-               sinst = "$" +hex_range(addr,4)+": "
-
-
-              op = bus_read(addr,1)
-
-
-               addr  =  addr  + 1
-
-              sinst = sinst + instructions(op).op_name + " "
-               if instructions(op).addrmode = addr_mode_IMP then
-                 sinst = sinst +" {IMP}"
-                 elseif instructions(op).addrmode = add_mode_IMM then
-                value = bus_read(addr,1)
-                 addr = addr+1
-                sinst = sinst +"#$" + hex_range(value,2) + " {IMM}"
-               elseif instructions(op).addrmode = add_mode_ABS then
-                 lo = bus_read(addr,1)
-                    addr= addr+1
-                    hi =bus_read(addr,1)
-                      addr= addr+1
-                   sinst =sinst  + "$" + hex_range(_SHL(hi,8) or lo,4)+" {ABS}"
-             elseif instructions(op).addrmode = add_mode_ZPO then
-
-                 lo = bus_read(addr,1)
-                  addr= addr+1
-                  hi = &H00
-                  sinst = sinst +"$" + hex_range(lo,2) + " {ZPO}"
-                 elseif instructions(op).addrmode = addr_mode_ZPX then
-                   lo = bus_read(addr,1)
-                     addr= addr+1
-                     hi = &H00
-                     sinst=sinst + "$" +  hex_range(lo,2) + ", X {ZPX}"
-                     elseif instructions(op).addrmode = add_mode_ZPY then
-                     lo = bus_read(addr,1)
-                     addr= addr+1
-                     hi = &H00
-                     sinst =sinst  + "$" +  hex_range(lo,2) + ", Y {ZPY}"
-                     elseif instructions(op).addrmode = add_mode_IZX then
-                     lo = bus_read(addr,1)
-                     addr= addr+1
-                     hi = &H00
-                     sinst =sinst  + "($" +  hex_range(lo,2) + ", X) {IZX}"
-                     elseif instructions(opc).addrmode = addr_mode_IZY then
-                     lo = bus_read(addr,1)
-                     addr= addr+1
-                     hi = &H00
-                     sinst =sinst  + "($" +  hex_range(lo,2) + ", Y) {IZY}"
-                      elseif  instructions(op).addrmode = add_mode_ABX then
-                     lo = bus_read(addr,1)
-                     addr= addr+1
-                     hi =bus_read(addr,1)
-                      addr= addr+1
-                     sinst =sinst  + "$" + hex_range(_SHL(hi,8) or lo,4)+", X {ABX}"
-                      elseif  instructions(op).addrmode = add_mode_ABY then
-                     lo = bus_read(addr,1)
-                     addr= addr+1
-                     hi =bus_read(addr,1)
-                      addr= addr+1
-                     sinst =sinst  + "$" + hex_range(_SHL(hi,8) or lo,4)+", Y {ABY}"
-                       elseif  instructions(op).addrmode = addr_mode_IND then
-                     lo = bus_read(addr,1)
-                     addr= addr+1
-                     hi =bus_read(addr,1)
-                      addr= addr+1
-                     sinst =sinst  + "($" + hex_range(_SHL(hi,8) or lo,4)+") {IND}"
-                       elseif  instructions(op).addrmode = add_mode_REL then
-                       value = bus_read(addr,1)
-                        addr= addr+1
-                     sinst =sinst  + "$" + hex_range(value,2) +" [$"+hex_range(addr + value,4) + "] {REL}"
+        addr = addr + 1
 
 
 
+        sInst = sInst + instructions(op).op_name + " "
+        IF instructions(op).addrmode = addr_mode_IMP THEN
+            sInst = sInst + " {IMP}"
+        ELSEIF instructions(op).addrmode = add_mode_IMM THEN
+            value = bus_read(addr, 1)
+            addr = addr + 1
+            sInst = sInst + "#$" + hex_range(value, 2) + " {IMM}"
+        ELSEIF instructions(op).addrmode = add_mode_ABS THEN
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = bus_read(addr, 1)
+            addr = addr + 1
+            sInst = sInst + "$" + hex_range(_SHL(hi, 8) OR lo, 4) + " {ABS}"
+        ELSEIF instructions(op).addrmode = add_mode_ZPO THEN
 
-                  end if
-               maparray(line_addr) = sinst
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = &H00
+            sInst = sInst + "$" + hex_range(lo, 2) + " {ZPO}"
+        ELSEIF instructions(op).addrmode = addr_mode_ZPX THEN
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = &H00
+            sInst = sInst + "$" + hex_range(lo, 2) + ", X {ZPX}"
+        ELSEIF instructions(op).addrmode = add_mode_ZPY THEN
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = &H00
+            sInst = sInst + "$" + hex_range(lo, 2) + ", Y {ZPY}"
+        ELSEIF instructions(op).addrmode = add_mode_IZX THEN
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = &H00
+            sInst = sInst + "($" + hex_range(lo, 2) + ", X) {IZX}"
+        ELSEIF instructions(op).addrmode = addr_mode_IZY THEN
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = &H00
+            sInst = sInst + "($" + hex_range(lo, 2) + ", Y) {IZY}"
+        ELSEIF instructions(op).addrmode = add_mode_ABX THEN
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = bus_read(addr, 1)
+            addr = addr + 1
+            sInst = sInst + "$" + hex_range(_SHL(hi, 8) OR lo, 4) + ", X {ABX}"
+        ELSEIF instructions(op).addrmode = add_mode_ABY THEN
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = bus_read(addr, 1)
+            addr = addr + 1
+            sInst = sInst + "$" + hex_range(_SHL(hi, 8) OR lo, 4) + ", Y {ABY}"
+        ELSEIF instructions(op).addrmode = addr_mode_IND THEN
+            lo = bus_read(addr, 1)
+            addr = addr + 1
+            hi = bus_read(addr, 1)
+            addr = addr + 1
+            sInst = sInst + "($" + hex_range(_SHL(hi, 8) OR lo, 4) + ") {IND}"
+        ELSEIF instructions(op).addrmode = add_mode_REL THEN
+            value = bus_read(addr, 1)
+            value_sgn = value
+            addr = addr + 1
+            sInst = sInst + "$" + hex_range(value, 2) + " [$" + hex_range(addr + value_sgn, 4) + "] {REL}"
 
 
+        END IF
 
-       wend
+        maparray(line_addr) = sInst
+
+    WEND
+
+ '   maparray(65536) = " "
 
 
+END SUB
 
-
-
-end sub
 
 '$include: 'addressmodes_6502.bm'
 '$include: 'instructions_6502.bm'
